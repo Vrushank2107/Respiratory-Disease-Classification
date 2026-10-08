@@ -1,0 +1,2 @@
+model,best_epoch,best_validation_loss,test_samples,accuracy,balanced_accuracy,macro_precision,macro_recall,macro_f1,weighted_f1
+Regularized Multi-Feature CNN (12B),2,1.3322009372502501,1561,0.8565022421524664,0.16666666666666666,0.14275037369207774,0.16666666666666666,0.1537842190016103,0.790299170295271

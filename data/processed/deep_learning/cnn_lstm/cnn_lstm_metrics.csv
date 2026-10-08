@@ -1,0 +1,2 @@
+model,accuracy,balanced_accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,test_loss,best_epoch,best_validation_loss,test_samples,test_patients
+CNN-LSTM,0.8135810377962844,0.2260849970274054,0.13447293008350536,0.16956374777055405,0.14647124964045707,0.7867351773881051,0.8616819239670768,8,1.271948614057879,1561,25

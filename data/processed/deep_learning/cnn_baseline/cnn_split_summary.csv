@@ -1,0 +1,4 @@
+cnn_split,cycles,patients
+train,4423,82
+validation,914,19
+test,1561,25

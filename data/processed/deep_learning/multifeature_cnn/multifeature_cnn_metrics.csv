@@ -1,0 +1,2 @@
+model,best_epoch,best_validation_loss,test_samples,accuracy,balanced_accuracy,macro_precision,macro_recall,macro_f1,weighted_f1
+Multi-Feature CNN,1,2.45279103893322,1561,0.8552210121716848,0.16641735228122664,0.14271969211032712,0.16641735228122664,0.15366022099447516,0.7896619428684687

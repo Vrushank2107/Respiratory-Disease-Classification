@@ -1,0 +1,7 @@
+patient_id,recording_id,true_disease,predicted_disease,confidence,gradcam_shape,output_file
+169,1b2,Bronchiectasis,Bronchiectasis,0.42500850558280945,"(64, 157)",/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/xai/gradcam_bronchiectasis.png
+161,1b1,Bronchiolitis,Bronchiolitis,0.7997462749481201,"(64, 157)",/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/xai/gradcam_bronchiolitis.png
+106,2b1,COPD,COPD,0.859300971031189,"(64, 157)",/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/xai/gradcam_copd.png
+121,1b1,Healthy,Healthy,0.2774847745895386,"(64, 157)",/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/xai/gradcam_healthy.png
+122,2b1,Pneumonia,Pneumonia,0.6424092650413513,"(64, 157)",/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/xai/gradcam_pneumonia.png
+101,1b1,URTI,URTI,0.28030717372894287,"(64, 157)",/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/xai/gradcam_urti.png

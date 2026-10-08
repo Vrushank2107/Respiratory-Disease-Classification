@@ -1,0 +1,8 @@
+{
+    "best_classical_by_macro_f1": "Random Forest",
+    "best_classical_by_balanced_accuracy": "SVM",
+    "best_deep_learning_by_macro_f1": "Lightweight Mel CNN",
+    "best_deep_learning_by_balanced_accuracy": "Lightweight Mel CNN",
+    "best_patient_level_aggregation": "Majority Vote",
+    "primary_final_deep_learning_model": "Lightweight Mel CNN"
+}

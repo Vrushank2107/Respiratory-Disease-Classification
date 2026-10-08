@@ -1,0 +1,12 @@
+{
+  "experiment": "CNN-LSTM optional experiment",
+  "best_model_by_macro_f1": "Lightweight Mel CNN",
+  "best_macro_f1": 0.2128802054337031,
+  "best_balanced_accuracy": 0.3101678079997569,
+  "cnn_lstm_macro_f1": 0.14647124964045707,
+  "cnn_lstm_balanced_accuracy": 0.2260849970274054,
+  "cnn_lstm_accuracy": 0.8135810377962844,
+  "cnn_lstm_weighted_f1": 0.7867351773881051,
+  "patient_disjoint_evaluation": true,
+  "training_augmentation_only": true
+}

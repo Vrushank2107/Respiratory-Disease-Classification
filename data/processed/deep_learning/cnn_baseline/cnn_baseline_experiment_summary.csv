@@ -1,0 +1,2 @@
+experiment,input,input_shape,split_strategy,augmentation,class_weights,model_selection,early_stopping,test_patients,test_cycles,accuracy,balanced_accuracy,macro_precision,macro_recall,macro_f1,weighted_f1
+Lightweight Mel CNN Baseline,Log-Mel spectrogram,"(1, 64, 157)",Patient-disjoint,Training only: Gaussian noise + time shift,Training only,Validation loss,Validation loss,25,1561,0.7168481742472774,0.31016780799975696,0.2130225938117892,0.26585812114264884,0.21288020543370312,0.7687212728918015

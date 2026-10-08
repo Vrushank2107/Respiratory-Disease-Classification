@@ -1,0 +1,14 @@
+{
+  "experiment": "Patient-level prediction",
+  "base_model": "Lightweight Mel CNN",
+  "test_patients": 25,
+  "test_cycles": 1561,
+  "aggregation_methods": [
+    "Majority Vote",
+    "Mean Probability"
+  ],
+  "best_aggregation_method": "Majority Vote",
+  "best_macro_f1": 0.16206896551724137,
+  "best_balanced_accuracy": 0.3333333333333333,
+  "patient_disjoint_evaluation": true
+}

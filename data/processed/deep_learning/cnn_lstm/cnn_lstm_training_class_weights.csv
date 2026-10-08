@@ -1,0 +1,9 @@
+disease_label,diagnosis,class_weight
+0,Asthma,92.145836
+1,Bronchiectasis,7.274671
+2,Bronchiolitis,4.8497806
+3,COPD,0.1489025
+4,Healthy,2.8498712
+5,LRTI,17.277344
+6,Pneumonia,4.569215
+7,URTI,3.3106287

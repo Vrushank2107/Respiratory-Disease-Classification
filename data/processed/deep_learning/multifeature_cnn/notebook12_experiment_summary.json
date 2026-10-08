@@ -1,0 +1,22 @@
+{
+    "notebook": "12_multifeature_cnn",
+    "experiments": [
+        "12A - Multi-Feature CNN",
+        "12B - Regularized Multi-Feature CNN"
+    ],
+    "baseline_comparison": "11 - Lightweight Mel CNN",
+    "input_features": [
+        "Log-Mel",
+        "MFCC",
+        "Chroma"
+    ],
+    "patient_disjoint": true,
+    "selection_priority": [
+        "Macro F1",
+        "Balanced Accuracy"
+    ],
+    "best_cnn": "Lightweight Mel CNN",
+    "12A_best_epoch": 1,
+    "12B_best_epoch": 2,
+    "results_file": "/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn/final_cnn_experiment_comparison.csv"
+}

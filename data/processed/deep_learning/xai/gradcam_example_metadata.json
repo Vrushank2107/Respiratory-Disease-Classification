@@ -1,0 +1,22 @@
+{
+  "patient_id": 106,
+  "recording_id": "2b1",
+  "true_disease": "COPD",
+  "predicted_disease": "COPD",
+  "predicted_label": 3,
+  "predicted_probability": 0.859300971031189,
+  "logmel_shape": [
+    64,
+    157
+  ],
+  "gradcam_shape": [
+    16,
+    39
+  ],
+  "resized_gradcam_shape": [
+    64,
+    157
+  ],
+  "model": "Lightweight Mel CNN",
+  "explanation_method": "Grad-CAM"
+}

@@ -1,0 +1,9 @@
+class_index,class_name,training_samples,class_weight
+0,Asthma,6,92.145836
+1,Bronchiectasis,76,7.274671
+2,Bronchiolitis,114,4.8497806
+3,COPD,3713,0.1489025
+4,Healthy,194,2.8498712
+5,LRTI,32,17.277344
+6,Pneumonia,121,4.569215
+7,URTI,167,3.3106287
