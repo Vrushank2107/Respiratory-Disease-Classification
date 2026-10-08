@@ -1,0 +1,9 @@
+diagnosis,Both,Crackles,Normal,Wheezes
+Asthma,0.0,0.0,33.33,66.67
+Bronchiectasis,9.62,11.54,49.04,29.81
+Bronchiolitis,3.12,9.38,47.5,40.0
+COPD,8.53,30.96,47.42,13.09
+Healthy,0.31,4.97,94.1,0.62
+LRTI,0.0,0.0,96.88,3.12
+Pneumonia,0.0,7.37,84.21,8.42
+URTI,0.0,8.64,88.07,3.29

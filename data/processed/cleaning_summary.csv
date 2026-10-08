@@ -1,0 +1,12 @@
+check,result
+patients,126
+recordings,920
+respiratory_cycles,6898
+duplicate_patients,0
+duplicate_recordings,0
+duplicate_cycles,0
+unreadable_wav_files,0
+unique_audio_hashes,920
+recordings_without_cycles,0
+cycles_with_invalid_timing,0
+overlapping_cycles,0
