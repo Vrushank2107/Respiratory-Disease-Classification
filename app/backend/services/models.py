@@ -265,3 +265,44 @@ def predict_dl(model_id, y):
         "inference_ms": round((time.perf_counter() - start) * 1000, 2),
         "warnings": [],
     }
+
+
+def explain_dl(model_id, y, target_class):
+    """Return input-gradient saliency for one exact neural-model input cycle."""
+    _, _, _, kind = MODEL_SPECS[model_id]
+    model, stats = load_dl_model(model_id)
+    features = extract_features(y)
+    inputs = {}
+    if kind.startswith("logmel"):
+        mean, std = stats["logmel"]
+        inputs["logmel"] = torch.from_numpy(
+            ((features["logmel"] - mean) / std)[None, None]
+        ).float().requires_grad_(True)
+        args = [inputs["logmel"]]
+    else:
+        for key in ("logmel", "mfcc", "chroma"):
+            mean, std = stats[key]
+            inputs[key] = torch.from_numpy(
+                ((features[key] - mean) / std)[None, None]
+            ).float().requires_grad_(True)
+        args = [inputs[key] for key in ("logmel", "mfcc", "chroma")]
+
+    target_index = CLASS_NAMES.index(target_class)
+    model.zero_grad(set_to_none=True)
+    with torch.enable_grad():
+        logits = model(*args)
+        logits[0, target_index].backward()
+
+    attributions = {}
+    for key, value in inputs.items():
+        saliency = (value.grad * value).abs().squeeze(0).squeeze(0)
+        saliency = saliency.detach().cpu().numpy()
+        peak = float(np.max(saliency))
+        if peak > 0:
+            saliency = saliency / peak
+        attributions[key] = saliency.astype(np.float32)
+    return {
+        "method": "Input-gradient saliency (absolute gradient × normalized input)",
+        "target_class": target_class,
+        "feature_attributions": attributions,
+    }

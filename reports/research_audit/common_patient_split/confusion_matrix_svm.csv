@@ -1,0 +1,9 @@
+true_disease,Asthma,Bronchiectasis,Bronchiolitis,COPD,Healthy,LRTI,Pneumonia,URTI
+Asthma,0,0,0,0,0,0,0,0
+Bronchiectasis,0,6,0,11,0,0,0,3
+Bronchiolitis,0,0,4,0,1,0,0,14
+COPD,0,3,4,1258,48,0,13,11
+Healthy,0,0,12,4,37,10,4,17
+LRTI,0,0,0,0,0,0,0,0
+Pneumonia,0,0,1,39,11,0,1,0
+URTI,0,0,2,3,22,6,0,16

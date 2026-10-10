@@ -1,0 +1,8 @@
+model_id,artifact_path,artifact_bytes
+logistic_regression,models/traditional_ml_patient_disjoint/logistic_regression.joblib,2782
+svm,models/traditional_ml_patient_disjoint/svm.joblib,550636
+random_forest,models/traditional_ml_patient_disjoint/random_forest.joblib,4329187
+lightweight_mel_cnn,models/deep_learning/lightweight_mel_cnn/best_lightweight_mel_cnn.pt,310935
+multifeature_cnn,models/deep_learning/multifeature_cnn/best_multifeature_cnn.pt,464538
+regularized_multifeature_cnn,models/deep_learning/regularized_multifeature_cnn/best_regularized_multifeature_cnn.pt,465550
+cnn_lstm,models/deep_learning/cnn_lstm/best_cnn_lstm.pt,373412

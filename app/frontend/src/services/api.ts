@@ -7,10 +7,16 @@ export async function get(path: string) {
   if (!r.ok) throw new Error(await r.text());
   return r.json();
 }
-export async function upload(path: string, file: File, fields: Record<string, string>) {
+export async function upload(
+  path: string,
+  file: File,
+  fields: Record<string, string>,
+  attachments: Record<string, File | null> = {},
+) {
   const f = new FormData();
   f.append('file', file);
   Object.entries(fields).forEach(([k, v]) => f.append(k, v));
+  Object.entries(attachments).forEach(([k, v]) => v && f.append(k, v));
   const r = await fetch(API + path, { method: 'POST', body: f });
   const j = await r.json();
   if (!r.ok) throw new Error(j.detail || 'Prediction failed');

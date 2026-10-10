@@ -1,0 +1,57 @@
+model_id,disease,precision,recall,f1,support_cycles,metric_status,support_patients,support_recordings
+logistic_regression,Asthma,,,,0,no held-out support,0,0
+logistic_regression,Bronchiectasis,0.7692307692307693,0.5,0.6060606060606061,20,measured,2,3
+logistic_regression,Bronchiolitis,0.19444444444444445,0.3684210526315789,0.2545454545454545,19,measured,1,1
+logistic_regression,COPD,0.9493464052287581,0.8691099476439791,0.9074580242092932,1337,measured,13,37
+logistic_regression,Healthy,0.17355371900826447,0.25,0.2048780487804878,84,measured,5,6
+logistic_regression,LRTI,,,,0,no held-out support,0,0
+logistic_regression,Pneumonia,0.0,0.0,0.0,52,measured,1,3
+logistic_regression,URTI,0.31343283582089554,0.42857142857142855,0.3620689655172414,49,measured,3,3
+svm,Asthma,,,,0,no held-out support,0,0
+svm,Bronchiectasis,0.6666666666666666,0.3,0.41379310344827586,20,measured,2,3
+svm,Bronchiolitis,0.17391304347826086,0.21052631578947367,0.19047619047619047,19,measured,1,1
+svm,COPD,0.9566539923954372,0.9409124906507106,0.9487179487179487,1337,measured,13,37
+svm,Healthy,0.31092436974789917,0.44047619047619047,0.3645320197044335,84,measured,5,6
+svm,LRTI,,,,0,no held-out support,0,0
+svm,Pneumonia,0.05555555555555555,0.019230769230769232,0.02857142857142857,52,measured,1,3
+svm,URTI,0.26229508196721313,0.32653061224489793,0.2909090909090909,49,measured,3,3
+random_forest,Asthma,,,,0,no held-out support,0,0
+random_forest,Bronchiectasis,0.0,0.0,0.0,20,measured,2,3
+random_forest,Bronchiolitis,0.07142857142857142,0.05263157894736842,0.06060606060606061,19,measured,1,1
+random_forest,COPD,0.9272334293948127,0.9626028421839941,0.9445871559633028,1337,measured,13,37
+random_forest,Healthy,0.3069306930693069,0.36904761904761907,0.33513513513513515,84,measured,5,6
+random_forest,LRTI,,,,0,no held-out support,0,0
+random_forest,Pneumonia,0.07142857142857142,0.019230769230769232,0.030303030303030304,52,measured,1,3
+random_forest,URTI,0.35714285714285715,0.30612244897959184,0.32967032967032966,49,measured,3,3
+lightweight_mel_cnn,Asthma,,,,0,no held-out support,0,0
+lightweight_mel_cnn,Bronchiectasis,0.06,0.15,0.08571428571428572,20,measured,2,3
+lightweight_mel_cnn,Bronchiolitis,0.07317073170731707,0.47368421052631576,0.1267605633802817,19,measured,1,1
+lightweight_mel_cnn,COPD,0.9566755083996463,0.8092744951383695,0.8768233387358185,1337,measured,13,37
+lightweight_mel_cnn,Healthy,0.0851063829787234,0.09523809523809523,0.0898876404494382,84,measured,5,6
+lightweight_mel_cnn,LRTI,,,,0,no held-out support,0,0
+lightweight_mel_cnn,Pneumonia,0.2727272727272727,0.23076923076923078,0.25,52,measured,1,3
+lightweight_mel_cnn,URTI,0.043478260869565216,0.10204081632653061,0.06097560975609756,49,measured,3,3
+multifeature_cnn,Asthma,,,,0,no held-out support,0,0
+multifeature_cnn,Bronchiectasis,0.0,0.0,0.0,20,measured,2,3
+multifeature_cnn,Bronchiolitis,0.0,0.0,0.0,19,measured,1,1
+multifeature_cnn,COPD,0.8563181526619628,0.9985041136873598,0.9219613259668509,1337,measured,13,37
+multifeature_cnn,Healthy,0.0,0.0,0.0,84,measured,5,6
+multifeature_cnn,LRTI,,,,0,no held-out support,0,0
+multifeature_cnn,Pneumonia,0.0,0.0,0.0,52,measured,1,3
+multifeature_cnn,URTI,0.0,0.0,0.0,49,measured,3,3
+regularized_multifeature_cnn,Asthma,,,,0,no held-out support,0,0
+regularized_multifeature_cnn,Bronchiectasis,0.0,0.0,0.0,20,measured,2,3
+regularized_multifeature_cnn,Bronchiolitis,0.0,0.0,0.0,19,measured,1,1
+regularized_multifeature_cnn,COPD,0.8565022421524664,1.0,0.9227053140096618,1337,measured,13,37
+regularized_multifeature_cnn,Healthy,0.0,0.0,0.0,84,measured,5,6
+regularized_multifeature_cnn,LRTI,,,,0,no held-out support,0,0
+regularized_multifeature_cnn,Pneumonia,0.0,0.0,0.0,52,measured,1,3
+regularized_multifeature_cnn,URTI,0.0,0.0,0.0,49,measured,3,3
+cnn_lstm,Asthma,,,,0,no held-out support,0,0
+cnn_lstm,Bronchiectasis,0.0,0.0,0.0,20,measured,2,3
+cnn_lstm,Bronchiolitis,0.0,0.0,0.0,19,measured,1,1
+cnn_lstm,COPD,0.884479092841956,0.9334330590875094,0.9082969432314411,1337,measured,13,37
+cnn_lstm,Healthy,0.0,0.0,0.0,84,measured,5,6
+cnn_lstm,LRTI,,,,0,no held-out support,0,0
+cnn_lstm,Pneumonia,0.19130434782608696,0.4230769230769231,0.2634730538922156,52,measured,1,3
+cnn_lstm,URTI,0.0,0.0,0.0,49,measured,3,3

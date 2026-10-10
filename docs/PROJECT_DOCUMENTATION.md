@@ -2,7 +2,7 @@
 
 **Project:** Respiratory Disease Classification from Lung Sounds
 **Dataset:** ICBHI 2017 respiratory sound dataset
-**Documentation audit:** 10 October 2026
+**Documentation audit:** 11 October 2026
 **Scope:** Notebooks 01–18, saved research artifacts, RespiraLab web application, and its Vercel/Render deployment
 
 > **Research-use notice:** This is an academic machine-learning project. Predictions and score values are experimental, are not calibrated clinical confidence, and must not be used to diagnose, treat, or triage a person.
@@ -14,7 +14,7 @@ The project investigates whether acoustic information in respiratory recordings 
 The project has two related deliverables:
 
 1. **Research pipeline:** 18 ordered Jupyter notebooks, the intermediate and processed tables they produce, model checkpoints/estimators, evaluation outputs, and validation reports.
-2. **RespiraLab application:** a React/Vite dashboard backed by a FastAPI inference and artifact API. It reads the saved work and can run the saved models on an uploaded WAV file. It does not train models from the browser.
+2. **RespiraLab application:** a React/Vite dashboard backed by a FastAPI inference and artifact API. It reads saved research results and runs saved models on WAV uploads. A matching ICBHI-style cycle-annotation `.txt` file is optional: annotations extract known cycles; without them, the API scores consecutive five-second windows, not detected cycles. It does not train models from the browser.
 
 ### Key verified dataset totals
 
@@ -119,7 +119,7 @@ The notebook reports a feature-table shape of 6,898 cycles by 52 columns, includ
 
 This notebook ranks and reduces the handcrafted features using correlation-based redundancy checks, ANOVA F-scores, mutual information, Random Forest feature importance, consensus ranking, and redundancy-aware selection. The notebook states that the official test recordings are not used to calculate selection scores or rankings.
 
-The deployed traditional classifiers use the final 33-feature list in the exact order stored in `models/traditional_ml/selected_features.json`. That order is part of the inference contract; changing it without retraining/repackaging the estimators would make their inputs incorrect.
+The active deployed traditional classifiers use the final 33-feature list in the exact order stored in `models/traditional_ml_patient_disjoint/selected_features.json`. That order is part of the inference contract; changing it without retraining/repackaging the estimators would make their inputs incorrect. The earlier official-split package remains under `models/traditional_ml/` for historical reproducibility.
 
 The selected predictors are: `spectral_entropy`, `mfcc_11_mean`, `zero_crossing_rate`, `dominant_frequency`, `mfcc_13_mean`, `wavelet_entropy`, `mfcc_1_mean`, `spectral_bandwidth`, `spectral_rolloff`, `mfcc_5_mean`, `mfcc_3_mean`, `mfcc_8_mean`, `peak_to_peak`, `mfcc_9_mean`, `mfcc_12_mean`, `mfcc_7_mean`, `mfcc_2_mean`, `energy`, `rms`, `mfcc_6_mean`, `band_energy_500_1000`, `spectral_flatness`, `band_energy_0_500`, `mfcc_4_mean`, `band_energy_1000_1500`, `min`, `mfcc_10_mean`, `skewness`, `mean`, `kurtosis`, `median`, `band_energy_1500_2000`, and `max`.
 
@@ -139,7 +139,7 @@ K-Means with K=2 has the highest silhouette score among the tested K values (app
 
 **File:** `notebooks/09_classical_ml.ipynb`
 
-The notebook trains and evaluates Logistic Regression, an RBF-kernel SVM, and a Random Forest on the 33 selected handcrafted features. The saved metadata records 4,142 training rows and 2,756 test rows using the existing official split. Logistic Regression and SVM use the saved scaler; Random Forest does not. The estimators use class weighting (`balanced`) and the settings are recorded in `models/traditional_ml/classical_ml_metadata.json`.
+The notebook trains and evaluates Logistic Regression, an RBF-kernel SVM, and a Random Forest on the 33 selected handcrafted features. The original saved experiment uses the official split and remains available as a historical result. For the common patient-held-out audit, all three estimators were retrained with feature selection and scaling fit on training patients only; the active serving package is saved in `models/traditional_ml_patient_disjoint/`. Logistic Regression and SVM use the saved scaler; Random Forest does not.
 
 The artifact metadata records Logistic Regression with `C=1`, `max_iter=3000`, and `random_state=42`; an RBF `SVC` with `C=1`, `probability=True`, and balanced class weights; and a 300-tree Random Forest with balanced class weights, `max_features='sqrt'`, and `random_state=42`. The saved inference package comprises three `.joblib` estimators, a scaler, label encoder, selected feature list, and metadata.
 
@@ -206,7 +206,7 @@ The test portion contains only 25 patients, so class support is very small for s
 
 This notebook reuses the Lightweight Mel CNN and generates Grad-CAM-style visual attribution over Log-Mel time-frequency inputs. The saved examples are selected from correctly classified test cycles for classes where such examples exist. It does not retrain the model.
 
-Grad-CAM indicates input regions that influenced the selected model output. It does not establish that a region corresponds to a specific clinical event or prove the prediction is correct. The app displays saved explanation examples; it does not currently generate a new Grad-CAM explanation for each uploaded recording.
+Grad-CAM indicates input regions that influenced the selected model output. It does not establish that a region corresponds to a specific clinical event or prove the prediction is correct. The app displays saved Grad-CAM research examples. For uploaded audio it uses distinct live methods—input-gradient saliency for neural models and single-feature baseline ablation for traditional models—and limits the explanation to the first segment. Live explanations are not Grad-CAM and are not clinical evidence.
 
 **Main artifacts:** images and metadata under `data/processed/deep_learning/xai/`, including `multi_class_xai_summary.csv`, `gradcam_example_metadata.json`, and `gradcam_*.png`.
 
@@ -240,13 +240,7 @@ Validation establishes that artifacts load and meet the checks implemented in th
 
 ### Evaluation protocols
 
-The results are grouped by their actual unit and split:
-
-1. **Classical ML:** cycle-level results over the existing official split, with 4,142 training and 2,756 test rows in saved metadata. The official split has two patients with recordings on both sides, as documented in Notebook 01.
-2. **Neural cycle-level:** a patient-disjoint split. The reported neural test set contains 1,561 cycles from 25 patients.
-3. **Patient-level:** cycle predictions aggregated to 25 patient-level predictions.
-
-These samples and splits are not interchangeable. The final report explicitly labels cross-model test-set comparability as unverified. Accuracy, balanced accuracy, macro F1, weighted F1, class support, and confusion matrices should be considered together.
+Historical notebook results preserve their original experiment splits and are not necessarily directly comparable. In addition, `reports/research_audit/` contains a common patient-held-out comparison of all seven serving model variants: the same 25 held-out patients, 53 recordings, and 1,561 cycles are used across model predictions. Neural model outputs are drawn from the saved patient-disjoint test exports; the three classical estimators were retrained on the shared training patients with feature ranking, pruning, and scaling fit on that training portion only. Patient-level majority-vote metrics are reported separately from cycle-level metrics. The held-out cohort has no Asthma or LRTI patients, so performance for those diagnoses is not established. See [`reports/research_audit/README.md`](../reports/research_audit/README.md) for the detailed protocol and support counts.
 
 ### Saved headline metrics
 
@@ -264,7 +258,7 @@ Values below come from the consolidated CSV artifacts; they are reported here, n
 | Majority Vote | Patient | 0.5600 | 0.3333 | 0.1621 | 0.4822 |
 | Mean Probability | Patient | 0.5600 | 0.3333 | 0.1621 | 0.4822 |
 
-The multi-feature models have the highest raw neural accuracy but low balanced accuracy and macro F1. The Lightweight Mel CNN has lower raw accuracy but higher balanced accuracy and macro F1 among the saved neural results. The SVM has the highest reported classical balanced accuracy. Do not interpret this table as a single fair ranking across families because the splits differ.
+This table preserves the historical notebook-level experiment results and is not the app's common-split ranking. For a fairer seven-model comparison, use the shared patient-held-out results summarized in `reports/research_audit/README.md` and displayed separately in Model Comparison. In either protocol, consider balanced accuracy, macro metrics, per-class support, and confusion matrices alongside raw accuracy.
 
 ## 4. RespiraLab application
 
@@ -285,18 +279,15 @@ The API derives its repository root from the backend module path, so its data/mo
 
 ### Frontend pages
 
-The Vite/React interface contains ten separate research pages:
+The Vite/React interface contains seven consolidated sections. Live audio analysis is part of the Predict workflow and appears with the results for that upload:
 
 1. **Overview:** dataset summary, saved comparisons, model readiness, and high-level charts.
 2. **Dataset & EDA:** disease/sound distributions, patient/audio summaries, cleaning checks, and saved EDA outputs.
-3. **Audio pipeline:** explanations of preprocessing and saved waveform/audio artifacts.
-4. **Features & PCA:** selected-feature rankings, feature statistics, PCA and cluster summaries.
-5. **Predict audio:** WAV selection, model selection, processing metadata, predictions and per-class scores.
-6. **Model comparison:** saved cycle-level metrics and confusion matrices.
-7. **Patient analysis:** majority-vote and mean-probability patient metrics, matrices, and agreement diagnostic.
-8. **Explainability:** saved Grad-CAM figures and explanatory metadata.
-9. **Reports:** allowlisted report and CSV downloads.
-10. **System status:** artifact validation rows and model availability.
+3. **Audio & features:** saved preprocessing, feature-selection, PCA, and cluster results from Notebooks 04–08.
+4. **Model development:** classical and neural training results from Notebooks 09–13.
+5. **Evaluation & XAI:** common and historical model comparisons, patient-level metrics, saved Grad-CAM examples, and live per-upload model explanations.
+6. **Artifacts & validation:** allowlisted reports, model artifact registry, validation records, and research paper provenance.
+7. **Predict audio:** the sole live-inference page, with optional ICBHI timestamp annotations, fixed-window fallback, processing details, scores, and segment-specific explanations.
 
 The layout has responsive desktop and mobile styling. On small screens navigation is horizontally scrollable, content/cards stack, and dense tables can scroll within their own bounded area.
 
@@ -308,9 +299,11 @@ The implemented API includes:
 |---|---|
 | `GET /api/health` | Health/status response |
 | `GET /api/models` | Model availability and load validation |
-| `GET /api/overview` | Dataset summary, model status, and highlights |
+| `GET /api/overview` | Cleaned dataset summary, saved seven-model artifact inventory, and highlights |
 | `GET /api/eda/summary` | Saved EDA and cleaning summaries |
 | `GET /api/features/summary` | Feature selection/statistic summaries |
+| `GET /api/pipeline/summary` | Saved audio/preprocessing and feature pipeline artifacts |
+| `GET /api/development/summary` | Saved classical/neural metrics and histories |
 | `GET /api/clustering/summary` | PCA and clustering outputs |
 | `GET /api/evaluation/models` | Cycle comparisons and model confusion matrices |
 | `GET /api/evaluation/cycle-level` | Consolidated cycle-level metrics |
@@ -319,27 +312,28 @@ The implemented API includes:
 | `GET /api/xai/image/{name}` | Allowlisted saved PNG image |
 | `GET /api/reports` | Allowlisted reports and URLs |
 | `GET /api/reports/download/{name}` | Download an allowlisted report |
-| `GET /api/system/status` | Current model/artifact readiness and validation data |
+| `GET /api/system/status` | Saved artifact inventory and validation records; no checkpoint loading |
 | `POST /api/audio/preview` | Audio waveform and derived feature preview |
 | `POST /api/predict` | One selected model prediction |
 | `POST /api/predict/compare` | Predictions from multiple selected models |
 
 ### Uploaded-audio prediction flow
 
-1. The user selects a WAV recording and one or more available models in **Predict audio**.
-2. The browser sends a multipart request to `/api/predict/compare`, including the file and selected model IDs.
-3. The backend validates the WAV, configured byte limit (20 MiB by default), duration limit (120 seconds by default), and decoded samples. Invalid, non-finite, or silent inputs are rejected with a structured error.
-4. Audio is decoded, multichannel audio is averaged to mono, and the signal is resampled to 4 kHz using the audio-processing service.
-5. Traditional estimators use the whole resampled waveform to compute the fixed selected 33 acoustic features. Shared feature computation is reused across selected classical models. Logistic Regression and SVM use their saved scaler; Random Forest follows its metadata and is unscaled.
-6. Neural models use a five-second (20,000-sample) fixed-duration input. Shorter signals are zero-padded; longer signals are truncated. The API computes the model-specific Log-Mel and, for the Multi-Feature CNNs, MFCC and Chroma inputs, applies saved training normalization, and runs the cached CPU model.
-7. The API returns the predicted class, class score map, model/runtime metadata, preprocessing handling, partial failures if any, and a research disclaimer. Score output is described as estimator/softmax score, not calibrated confidence.
-8. Temporary upload files are cleaned up. The application does not retain the submitted audio.
+1. The user selects a readable WAV (20 MiB and 120 seconds maximum by default), optionally attaches a matching ICBHI-style timestamp `.txt`, and chooses one or more available models in **Predict audio**. Both attachments can be removed before submitting.
+2. The browser sends a multipart request to `/api/predict/compare` with the WAV, selected model IDs, and optional annotation file.
+3. The backend validates the file and decoded signal, rejects silent/non-finite audio, and reads its duration, source sample rate, and channel count.
+4. If annotations are supplied, their start/end times are validated and used to extract respiratory cycles. Otherwise, the complete recording is resampled and split into consecutive five-second windows; the final window can be shorter. The windows are not cycle detection and predictions on these windows are exploratory because training/evaluation use respiratory cycles.
+5. Each cycle/window is downmixed to mono, resampled to 4 kHz, and peak-normalized. Traditional estimators compute the selected 33 acoustic features per segment, sharing feature extraction where possible. Logistic Regression and SVM use the saved scaler; Random Forest is unscaled.
+6. Neural models receive 20,000 samples (five seconds), padding or truncating each segment as necessary. The API calculates Log-Mel and, for Multi-Feature CNN variants, MFCC and Chroma inputs, applies saved training normalization, and runs the cached CPU model.
+7. Every segment is scored. Recording-level class scores are the unweighted mean of segment scores, and the predicted class is the top mean score. These outputs are not calibrated probabilities or clinical confidence.
+8. The response includes each segment's predicted class, timing/count context, preprocessing steps, a full-source waveform preview, first-segment prepared input and features, and an input-specific explanation for the first segment only. Neural explanations use input-gradient saliency; traditional explanations use feature baseline ablation. Recording scores are the unweighted mean of segment scores when scores are available; a majority segment vote is used when a model does not return class scores. Neither explanations nor outputs establish clinical evidence.
+9. Temporary upload files are removed after processing. The application does not retain the submitted audio.
 
-### Current artifact behavior and known count discrepancy
+### Saved artifact and count behavior
 
 The CNN Baseline confusion matrix artifact was missing as a standalone CSV even though `cnn_test_predictions.csv` existed. The API now derives the matrix from the saved `true_disease` and `predicted_disease` test columns when the standalone matrix file is absent; the UI labels that source explicitly.
 
-There is also a count bug in the current `/api/overview` and `/api/eda/summary` implementation: it computes `recording_id.nunique()`. That field is a short recording code reused by many WAV files; it has 34 distinct codes. The cleaned table has 920 unique WAV paths (`wav_path.nunique()`) and the cleaning audit confirms 920 recordings. Therefore the frontend's Overview recording card currently undercounts recordings as 34; the underlying cleaned data contains 920. This is a dashboard/API summary issue, not missing recording files.
+Overview reports the cleaned patient, unique WAV recording, and cycle counts separately. Its seven-row saved model inventory checks artifact paths without loading model weights. Runtime model availability is validated separately when Predict audio opens. Saved validation records are informational and should not be confused with a live health check or scientific validation.
 
 ## 5. Deployment history and current hosting
 
@@ -416,21 +410,21 @@ Re-running preprocessing and neural training requires local processed cycle audi
 
 - The cohort is small at the patient level and strongly class-imbalanced.
 - Cycle rows from one patient are related; evaluation must preserve patient grouping when the claim is patient generalization.
-- The classical experiment uses the official recording split; the notebook records two patients across both official partitions. Deep learning uses a patient-disjoint split. Cross-family comparisons are therefore not confirmed as equivalent.
+- Historical classical notebook results use the official recording split and include two patients with recordings on both sides. The active classical package was retrained for the shared patient-disjoint audit; neural test predictions use saved outputs from that same patient split. The common-split comparison is more consistent, but inherited hyperparameter selection and other benchmark limitations remain.
 - Patient aggregation is evaluated on only 25 patients; identical predictions across two aggregation methods on this set do not prove the methods are generally interchangeable.
 - High raw accuracy on an imbalanced dataset can coexist with weak minority-class performance. Review balanced accuracy, macro metrics, per-class support and confusion matrices.
 - Softmax and estimator probability outputs are not calibrated confidence. Calibration has not been established.
-- Grad-CAM is a model-attribution visualization, not clinical evidence; current app XAI uses saved examples rather than generating explanations for every uploaded sound.
+- Saved Grad-CAM examples are historical research artifacts. Live uploaded-audio explanations use input-gradient saliency for neural models and feature baseline ablation for traditional models, and explain only the first segment; they are model-behavior diagnostics, not clinical evidence.
 - A healthy dataset label or predicted label is not a medical assessment. This app must not be used clinically.
 - The public API has no user authentication or request-level account system. Public hosting and plan limits apply; add access control/rate limiting before exposing it to sensitive or high-volume use.
-- The Overview recording-count calculation currently uses distinct short recording IDs rather than unique WAV paths; see the count-discrepancy note above.
 
 ## 8. Project map and further reading
 
 - `notebooks/` — numbered research workflow, 01 through 18.
 - `data/interim/` — parsed source metadata and intermediate validation tables.
 - `data/processed/` — cleaned tables, feature matrices, metrics, predictions, manifests, and XAI examples.
-- `models/traditional_ml/` — estimators and exact traditional inference metadata.
+- `models/traditional_ml_patient_disjoint/` — active classical inference estimators and their exact feature/scaler metadata for the common patient-held-out model package.
+- `models/traditional_ml/` — preserved legacy official-split estimators and metadata.
 - `models/deep_learning/` — neural checkpoints, training configs, and normalization assets.
 - `reports/final_artifacts/` — consolidated comparisons, validation logs, manifests, and final report.
 - `app/backend/` — FastAPI routes, audio processing, classical prediction, and neural model adapters.

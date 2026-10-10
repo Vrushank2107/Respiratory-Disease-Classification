@@ -1,63 +1,42 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   Activity,
-  AudioLines,
   BarChart3,
   BrainCircuit,
   Database,
   FileText,
-  HeartPulse,
   Mic2,
-  ShieldAlert,
-  SlidersHorizontal,
   Stethoscope,
-  Workflow,
+  SlidersHorizontal,
+  ShieldAlert,
 } from 'lucide-react';
 import { get, upload } from '../services/api';
 import type { ModelInfo, PredictionPayload } from '../types/api';
 import Overview from './sections/Overview';
 import Eda from './sections/Eda';
-import AudioPage from './sections/AudioPage';
-import Features from './sections/Features';
 import Predict from './sections/Predict';
-import Comparison from './sections/Comparison';
-import Patient from './sections/Patient';
-import Xai from './sections/Xai';
-import Reports from './sections/Reports';
-import Status from './sections/Status';
+import ResearchPages from './sections/ResearchPages';
 
 type PageId =
   | 'overview'
   | 'eda'
-  | 'audio'
   | 'features'
-  | 'predict'
-  | 'comparison'
-  | 'patient'
-  | 'xai'
-  | 'reports'
-  | 'status';
+  | 'development'
+  | 'evaluation'
+  | 'artifacts'
+  | 'predict';
 const nav = [
   ['Overview', 'overview', Activity],
   ['Dataset & EDA', 'eda', Database],
-  ['Audio pipeline', 'audio', AudioLines],
-  ['Features & PCA', 'features', SlidersHorizontal],
+  ['Audio & features', 'features', SlidersHorizontal],
+  ['Model development', 'development', BrainCircuit],
+  ['Evaluation & XAI', 'evaluation', BarChart3],
+  ['Artifacts & validation', 'artifacts', FileText],
   ['Predict audio', 'predict', Mic2],
-  ['Model comparison', 'comparison', BarChart3],
-  ['Patient analysis', 'patient', HeartPulse],
-  ['Explainability', 'xai', BrainCircuit],
-  ['Reports', 'reports', FileText],
-  ['System status', 'status', Workflow],
 ] as const;
 const routes: Partial<Record<PageId, string>> = {
   overview: '/api/overview',
   eda: '/api/eda/summary',
-  features: '/api/features/summary',
-  comparison: '/api/evaluation/models',
-  patient: '/api/evaluation/patient-level',
-  xai: '/api/xai/summary',
-  reports: '/api/reports',
-  status: '/api/system/status',
 };
 
 export default function App() {
@@ -67,31 +46,54 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [models, setModels] = useState<ModelInfo[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [annotationFile, setAnnotationFile] = useState<File | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [result, setResult] = useState<PredictionPayload | null>(null);
   const [apiState, setApiState] = useState<'checking' | 'connected' | 'error'>('checking');
+  const [modelsLoaded, setModelsLoaded] = useState(false);
 
   useEffect(() => {
+    if (page !== 'predict' || modelsLoaded) return;
+    setApiState('checking');
     get('/api/health')
-      .then(() => {
-        setApiState('connected');
-        return get('/api/models');
-      })
+      .then(() => get('/api/models'))
       .then((x) => {
         setModels(x.models);
         setSelected(
           x.models.filter((m: ModelInfo) => m.available).map((m: ModelInfo) => m.model_id),
         );
+        setApiState('connected');
+        setModelsLoaded(true);
       })
       .catch(() => setApiState('error'));
-  }, []);
+  }, [page, modelsLoaded]);
   useEffect(() => {
     const route = routes[page];
-    if (!route) return;
+    if (route) {
+      setLoading(true);
+      setError('');
+      get(route)
+        .then(setData)
+        .catch((e: Error) => setError(e.message))
+        .finally(() => setLoading(false));
+      return;
+    }
+    const groupedRoutes: Partial<Record<PageId, Record<string, string>>> = {
+      features: { features: '/api/features/summary', pipeline: '/api/pipeline/summary' },
+      development: { development: '/api/development/summary' },
+      evaluation: {
+        comparison: '/api/evaluation/models',
+        patient: '/api/evaluation/patient-level',
+        xai: '/api/xai/summary',
+      },
+      artifacts: { reports: '/api/reports', status: '/api/system/status' },
+    };
+    const section = groupedRoutes[page];
+    if (!section) return;
     setLoading(true);
     setError('');
-    get(route)
-      .then(setData)
+    Promise.all(Object.entries(section).map(async ([key, url]) => [key, await get(url)] as const))
+      .then((entries) => setData(Object.fromEntries(entries)))
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
   }, [page]);
@@ -103,7 +105,14 @@ export default function App() {
     setResult(null);
     try {
       setResult(
-        await upload('/api/predict/compare', file, { model_ids: JSON.stringify(selected) }),
+        await upload(
+          '/api/predict/compare',
+          file,
+          {
+            model_ids: JSON.stringify(selected),
+          },
+          { annotations: annotationFile },
+        ),
       );
     } catch (e: any) {
       setError(e.message);
@@ -112,10 +121,12 @@ export default function App() {
     }
   }
   const pageContent = {
-    overview: <Overview data={data} models={models} go={setPage} />,
+    overview: <Overview data={data} go={setPage} />,
     eda: <Eda data={data} />,
-    audio: <AudioPage />,
-    features: <Features data={data} />,
+    features: <ResearchPages section="features" data={data} />,
+    development: <ResearchPages section="development" data={data} />,
+    evaluation: <ResearchPages section="evaluation" data={data} />,
+    artifacts: <ResearchPages section="artifacts" data={data} />,
     predict: (
       <Predict
         models={models}
@@ -123,17 +134,14 @@ export default function App() {
         setSelected={setSelected}
         file={file}
         setFile={setFile}
+        annotationFile={annotationFile}
+        setAnnotationFile={setAnnotationFile}
         setResult={setResult}
         run={run}
         result={result}
         loading={loading}
       />
     ),
-    comparison: <Comparison data={data} />,
-    patient: <Patient data={data} />,
-    xai: <Xai data={data} />,
-    reports: <Reports data={data} />,
-    status: <Status data={data} />,
   } satisfies Record<PageId, ReactNode>;
   return (
     <div className="shell">
@@ -175,14 +183,21 @@ export default function App() {
             <b>{heading}</b>
           </div>
           <div className="top-right">
-            <span className={`api-state api-${apiState}`}>
-              <i /> API{' '}
-              {apiState === 'checking'
-                ? 'checking'
-                : apiState === 'connected'
-                  ? 'connected'
-                  : 'unavailable'}
-            </span>
+            {page === 'predict' && (
+              <span className={`api-state api-${apiState}`}>
+                <i /> API{' '}
+                {apiState === 'checking'
+                  ? 'checking'
+                  : apiState === 'connected'
+                    ? 'connected'
+                    : 'unavailable'}
+              </span>
+            )}
+            {page !== 'predict' && (
+              <span className="api-state">
+                <i /> Saved research artifacts
+              </span>
+            )}
             <span className="avatar">RD</span>
           </div>
         </header>
@@ -194,7 +209,9 @@ export default function App() {
               <p>
                 {page === 'predict'
                   ? 'Run saved respiratory sound models against a WAV recording.'
-                  : `Explore ${heading.toLowerCase()} from the verified research workspace.`}
+                  : page === 'overview'
+                    ? 'A notebook-to-app research record: curated data, signal processing, model experiments, evaluation and saved artifacts.'
+                    : `Read saved notebook outputs, figures and evaluation records for ${heading.toLowerCase()}.`}
               </p>
             </div>
             {page === 'predict' && (

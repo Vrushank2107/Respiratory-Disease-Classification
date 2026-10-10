@@ -20,9 +20,9 @@ For the full project history and technical walkthrough, see [the detailed projec
 - **Research workflow:** 18 Jupyter notebooks cover dataset understanding, cleaning, EDA, audio processing, feature work, classical and deep learning, patient-level aggregation, explainability, and validation.
 - **Saved models:** Logistic Regression, SVM, Random Forest, Lightweight Mel CNN, Multi-Feature CNN, Regularized Multi-Feature CNN (12B), and CNN-LSTM.
 - **Dashboard:** dataset and EDA views, audio pipeline and feature summaries, model comparison, patient analysis, saved explainability examples, reports, system status, and WAV prediction.
-- **API:** FastAPI reads the saved research artifacts and runs inference; prediction uploads are processed in memory and are not retained.
+- **API:** FastAPI reads saved research artifacts and runs inference; uploaded WAVs are written to a temporary file and removed after processing. Full WAV recordings can use optional ICBHI-style cycle annotations. Without annotations, the app scores consecutive five-second windows; these are not respiratory-cycle detection.
 
-The cleaned dataset contains **126 patients, 920 WAV recordings, and 6,898 respiratory cycles**. The current dashboard recording card mistakenly counts 34 distinct short recording codes instead of unique WAV files; the detailed documentation explains this known API summary issue. Class counts and evaluation outputs are available in the app and under `data/processed/` and `reports/final_artifacts/`.
+The cleaned dataset contains **126 patients, 920 WAV recordings, and 6,898 respiratory cycles**. The Model Comparison page now includes a common patient-held-out comparison of all seven models, plus per-disease and patient-level metrics. Its test set contains no Asthma or LRTI patients, so performance for those diagnoses is not established. See [`reports/research_audit/README.md`](reports/research_audit/README.md) for protocol and limitations; historical experiment reports remain under `reports/final_artifacts/`.
 
 ## Repository layout
 
@@ -38,10 +38,12 @@ The cleaned dataset contains **126 patients, 920 WAV recordings, and 6,898 respi
 │   └── processed/            # Cleaned data, features, predictions, and metrics
 ├── models/
 │   ├── deep_learning/        # PyTorch checkpoints and normalization data
-│   └── traditional_ml/       # scikit-learn estimators and metadata
+│   ├── traditional_ml/       # Legacy official-split estimators
+│   └── traditional_ml_patient_disjoint/ # Active patient-disjoint serving package
 ├── notebooks/                # Ordered research and validation notebooks
 ├── reports/
-│   └── final_artifacts/      # Final comparisons, registries, and validation reports
+│   ├── final_artifacts/      # Historical comparisons, registries, validation reports
+│   └── research_audit/       # Common patient-held-out evaluation
 ├── Dockerfile                # CPU-only backend container for Render / local Docker
 ├── docker-compose.yml        # Local backend service
 ├── requirements.txt          # Full research/notebook environment
@@ -100,11 +102,17 @@ jupyter lab
 
 Open the notebooks in `notebooks/` and follow their numbered order. Re-running the original data-preparation and training stages requires the raw ICBHI data. The dashboard itself uses the checked-in saved models and results; it does not retrain models.
 
+## Prediction workflow and limits
+
+In **Predict audio**, choose a readable WAV of up to 20 MiB and 120 seconds, optionally attach its matching ICBHI-style timestamp `.txt` file, and select one or more available models. The app shows input validation, downmixing to mono, resampling to 4 kHz, segment preparation, live waveform and feature views, per-segment predictions, recording-level scores, inference time, and an input-specific explanation for the first segment. The WAV and optional annotation can each be removed before running.
+
+With annotations, the backend extracts the specified respiratory cycles. Without annotations, it covers the full recording with consecutive five-second windows (the final window may be shorter); it does not detect breaths or cycles. Since the models were trained and evaluated on respiratory cycles, predictions from arbitrary recordings or fixed windows are exploratory and may not generalize. Neural inputs are padded or truncated to five seconds; traditional models process the complete segment. The displayed score is an uncalibrated model output, not a probability that the prediction is correct. Explanations show model behavior for the first segment only, while the recording score aggregates all segments.
+
 ## Models and interpretation
 
-Traditional machine-learning inference uses the saved scaler, label encoder, selected-feature list, and estimators. Neural inference uses the saved PyTorch checkpoints and training normalizations. The API lists a model as available only when its required artifacts load successfully.
+Traditional machine-learning inference uses the patient-disjoint package's scaler, label encoder, selected-feature list, and estimators. The earlier official-split package is retained separately. Neural inference uses the saved PyTorch checkpoints and training normalizations. The API lists a model as available only when its required artifacts load successfully.
 
-The saved evaluation results are subject to class imbalance and use protocols that may differ between experiments. Check the split-comparability notes in `reports/final_artifacts/final_results_report.md` before comparing model scores. Probability-like outputs are not calibrated confidence estimates.
+The common comparison uses one patient-held-out test cohort, but classes remain imbalanced and Asthma/LRTI have zero test support. Classical hyperparameters were not retuned on this split, and historical tuning decisions still require review. Probability-like outputs are not calibrated confidence estimates.
 
 ## Deployment
 
@@ -118,7 +126,7 @@ See [Vercel deployment notes](app/docs/vercel-deployment.md), [Cloud Run alterna
 
 The API provides health and model status, overview and research summaries, saved evaluations and report downloads, audio preview, and prediction for one or multiple models. See the live [OpenAPI documentation](https://respiratory-disease-classification.onrender.com/docs) or [API reference](app/docs/api.md) for routes and request formats.
 
-WAV uploads default to a maximum of 20 MiB and 120 seconds. The backend accepts `MAX_UPLOAD_BYTES` and `MAX_AUDIO_DURATION_SECONDS` environment variables to change those limits.
+WAV uploads default to a maximum of 20 MiB and 120 seconds. A matching ICBHI-style `.txt` annotation file is optional; without it, the full recording is scored in fixed consecutive five-second windows. The backend accepts `MAX_UPLOAD_BYTES` and `MAX_AUDIO_DURATION_SECONDS` environment variables to change those limits.
 
 ## Technology
 

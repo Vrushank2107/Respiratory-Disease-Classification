@@ -10,12 +10,24 @@ def test_health_and_models():
     models = client.get("/api/models").json()["models"]
     assert len(models) == 7
     assert all(m["available"] for m in models)
+    assert all(m["artifact_size_bytes"] > 0 for m in models)
+    assert all(m["input_contract"] for m in models)
+    assert all(len(m["class_names"]) == 8 for m in models)
 
 
 def test_saved_summaries_and_allowlisted_report():
-    assert client.get("/api/overview").status_code == 200
+    overview = client.get("/api/overview")
+    assert overview.status_code == 200
+    assert overview.json()["dataset"]["recordings"] == 920
     assert client.get("/api/features/summary").status_code == 200
     assert client.get("/api/evaluation/patient-level").status_code == 200
+    evaluation = client.get("/api/evaluation/models").json()
+    assert len(evaluation["common_patient_split"]["cycle_level"]) == 7
+    assert len(evaluation["common_patient_split"]["patient_level"]) == 7
+    reports = client.get("/api/reports").json()["reports"]
+    assert any(row["name"] == "overall_metrics.csv" for row in reports)
+    assert client.get("/api/reports/download/overall_metrics.csv").status_code == 200
+    assert client.get("/api/reports/download/../../README.md").status_code == 404
     assert client.get("/api/reports/download/../../README.md").status_code == 404
 
 
@@ -23,7 +35,7 @@ def test_predict_upload_reference():
     audio = ROOT / "data/processed/audio/cycles/101/1b1_Al_001.wav"
     response = client.post(
         "/api/predict",
-        data={"model_id": "lightweight_mel_cnn"},
+        data={"model_id": "lightweight_mel_cnn", "single_cycle_confirmed": "true"},
         files={"file": ("sample.wav", audio.read_bytes(), "audio/wav")},
     )
     assert response.status_code == 200, response.text
@@ -54,7 +66,7 @@ def test_all_seven_models_run_on_same_upload():
     ]
     response = client.post(
         "/api/predict/compare",
-        data={"model_ids": json.dumps(ids)},
+        data={"model_ids": json.dumps(ids), "single_cycle_confirmed": "true"},
         files={"file": ("sample.wav", audio.read_bytes(), "audio/wav")},
     )
     assert response.status_code == 200, response.text
@@ -114,7 +126,7 @@ def test_classical_probability_scores_use_disease_names():
     audio = ROOT / "data/processed/audio/cycles/101/1b1_Al_001.wav"
     response = client.post(
         "/api/predict",
-        data={"model_id": "logistic_regression"},
+        data={"model_id": "logistic_regression", "single_cycle_confirmed": "true"},
         files={"file": ("sample.wav", audio.read_bytes(), "audio/wav")},
     )
     assert response.status_code == 200, response.text
@@ -135,14 +147,16 @@ def test_prediction_response_reports_duration_and_preprocessing():
     audio = ROOT / "data/processed/audio/cycles/101/1b1_Al_001.wav"
     response = client.post(
         "/api/predict",
-        data={"model_id": "lightweight_mel_cnn"},
+        data={"model_id": "lightweight_mel_cnn", "single_cycle_confirmed": "true"},
         files={"file": ("sample.wav", audio.read_bytes(), "audio/wav")},
     )
     payload = response.json()
     assert payload["status"] == "success"
     assert payload["input_duration_seconds"] > 0
     assert payload["neural_input_duration_seconds"] == 5.0
-    assert "first five seconds" in payload["handling"]
+    assert payload["input_mode"] == "single_cycle"
+    assert payload["cycle_count"] == 1
+    assert "peak-normalized" in payload["handling"]
 
 
 def test_prediction_rejects_audio_over_configured_duration(monkeypatch):
@@ -152,7 +166,7 @@ def test_prediction_rejects_audio_over_configured_duration(monkeypatch):
     monkeypatch.setattr(api, "MAX_DURATION_SECONDS", 0.001)
     response = client.post(
         "/api/predict",
-        data={"model_id": "lightweight_mel_cnn"},
+        data={"model_id": "lightweight_mel_cnn", "single_cycle_confirmed": "true"},
         files={"file": ("sample.wav", audio.read_bytes(), "audio/wav")},
     )
     assert response.status_code == 413
@@ -168,8 +182,47 @@ def test_prediction_rejects_silent_audio():
     sf.write(buffer, np.zeros(4000, dtype=np.float32), 4000, format="WAV")
     response = client.post(
         "/api/predict",
-        data={"model_id": "lightweight_mel_cnn"},
+        data={"model_id": "lightweight_mel_cnn", "single_cycle_confirmed": "true"},
         files={"file": ("silent.wav", buffer.getvalue(), "audio/wav")},
     )
     assert response.status_code == 422
     assert "silent" in response.json()["detail"]
+
+
+def test_full_recording_requires_single_cycle_confirmation():
+    import io
+    import numpy as np
+    import soundfile as sf
+
+    buffer = io.BytesIO()
+    sf.write(buffer, np.sin(np.linspace(0, 100, 24000)).astype(np.float32), 4000, format="WAV")
+    response = client.post(
+        "/api/predict",
+        data={"model_id": "lightweight_mel_cnn"},
+        files={"file": ("recording.wav", buffer.getvalue(), "audio/wav")},
+    )
+    assert response.status_code == 422
+    assert "individual respiratory cycles" in response.json()["detail"]
+
+
+def test_full_recording_uses_uploaded_cycle_annotations():
+    import io
+    import numpy as np
+    import soundfile as sf
+
+    buffer = io.BytesIO()
+    audio = np.sin(2 * np.pi * 160 * np.arange(8000) / 4000).astype(np.float32)
+    sf.write(buffer, audio, 4000, format="WAV")
+    response = client.post(
+        "/api/predict",
+        data={"model_id": "lightweight_mel_cnn"},
+        files={
+            "file": ("recording.wav", buffer.getvalue(), "audio/wav"),
+            "annotations": ("recording.txt", "0.0 1.0 0 0\n1.0 2.0 1 0\n", "text/plain"),
+        },
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["input_mode"] == "annotated_recording"
+    assert payload["cycle_count"] == 2
+    assert len(payload["results"][0]["cycle_predictions"]) == 2

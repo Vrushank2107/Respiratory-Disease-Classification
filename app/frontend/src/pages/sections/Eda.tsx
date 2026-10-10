@@ -28,12 +28,25 @@ export default function Eda({ data }: any) {
           <Chart data={data.sound_distribution} labelKey="sound_label" />
         </Card>
       </div>
+      <div className="grid two">
+        <Card title="Disease × respiratory sound · Notebook 03">
+          <Table rows={data.disease_sound_counts || []} />
+          <p className="subtle">
+            Cycle sound labels (Normal, Crackles, Wheezes, Both) are not the same label as the
+            patient-level disease diagnosis.
+          </p>
+        </Card>
+        <Card title="Patient recording summary">
+          <Table rows={(data.patient_audio_summary || []).slice(0, 20)} />
+        </Card>
+      </div>
       <Card title="Data cleaning summary">
         <Table rows={data.cleaning_summary} />
       </Card>
       <p className="subtle">
-        Counts come from cleaned artifacts. Source, cleaned, and model-specific filtered counts are
-        not interchangeable.
+        Notebooks 01–03 document dataset structure, cleaning and exploratory analysis. Counts come
+        from saved cleaned artifacts. Source, cleaned, cycle-level and model-specific filtered
+        counts are not interchangeable; patient diagnosis and cycle sound labels are separate.
       </p>
     </>
   );

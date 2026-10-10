@@ -63,17 +63,21 @@ For another deployment, set `VITE_API_URL` to the backend origin in the frontend
 
 ## What the app shows
 
-- Overview and dataset/EDA summaries
-- Audio-processing and selected-feature summaries
-- Saved cycle-level model comparison and confusion matrices
-- Patient-level aggregation metrics and confusion matrices
-- Saved explainability images and report artifacts
-- Model and artifact readiness status
-- WAV prediction with per-model classes, scores, and inference time
+- **Overview** and cleaned dataset context
+- **Dataset & EDA** distributions, patient summaries, and cleaning records from Notebooks 01–03
+- **Audio & features** saved preprocessing examples, feature analyses, selection and PCA/clustering from Notebooks 04–08
+- **Model development** classical and neural training histories/metrics from Notebooks 09–13
+- **Evaluation & XAI** cycle/patient results and saved Grad-CAM examples from Notebooks 14–16
+- **Artifacts & validation** downloadable reports, saved validation records, the full Notebook 01–18 map, and related research papers
+- **Predict audio** WAV inference and input-specific processing/explanations
+
+The seven pages are **Overview**, **Dataset & EDA**, **Audio & features**, **Model development**, **Evaluation & XAI**, **Artifacts & validation**, and **Predict audio**. The first six are informational and read saved project artifacts; only Predict audio loads models and runs live inference. Model readiness is checked when Predict audio opens. Overview and Status show a lightweight seven-model artifact inventory without loading model weights. Paper references are presented as related work with notes on differences; paper-reported metrics are not presented as project results. See [research paper provenance](docs/research_provenance.md).
 
 The backend loads saved estimators, neural checkpoints, normalizations, and research artifacts from the repository. Raw source audio and preprocessed cycle audio are not required for inference. Uploaded recordings are validated, decoded, downmixed as needed, resampled, and processed temporarily; the API does not retain uploads.
 
-Uploads must be WAV files. The default limits are 20 MiB and 120 seconds; configure `MAX_UPLOAD_BYTES` or `MAX_AUDIO_DURATION_SECONDS` to change them.
+Uploads must be readable WAV files, up to 20 MiB and 120 seconds by default. A matching ICBHI-style timestamp `.txt` file is optional. With annotations, the backend extracts those cycle intervals. Without annotations, it scores the full recording in consecutive five-second windows, including a possibly shorter final window; these are not detected respiratory cycles. The models were trained on respiratory cycles, so scores for arbitrary WAV recordings are exploratory and may not generalize. Configure `MAX_UPLOAD_BYTES` or `MAX_AUDIO_DURATION_SECONDS` to change the limits.
+
+After prediction, the page displays source and prepared-input waveforms in separate panels, live Log-Mel/MFCC/Chroma views, preprocessing steps, all segment predictions, and model-specific explanations for the first segment only. Recording scores are the unweighted mean of segment scores. The highest displayed score is an uncalibrated model output, not a probability of correctness. Uploaded audio is not retained; temporary backend files are deleted after processing.
 
 ## Development and references
 

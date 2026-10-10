@@ -52,6 +52,8 @@ export function Chart({
   labelKey = 'diagnosis',
   valueKey = 'count',
   color = '#2c9b91',
+  allowDecimals = false,
+  showLabels = true,
 }: any) {
   if (!data?.length) return <div className="empty">No saved chart data is available.</div>;
   return (
@@ -67,14 +69,19 @@ export function Chart({
             height={60}
             tick={{ fontSize: 12, fill: '#49616b' }}
           />
-          <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#49616b' }} />
+          <YAxis allowDecimals={allowDecimals} tick={{ fontSize: 12, fill: '#49616b' }} />
           <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
           <Bar dataKey={valueKey} fill={color} radius={[4, 4, 0, 0]} minPointSize={3}>
-            <LabelList
-              dataKey={valueKey}
-              position="top"
-              style={{ fontSize: 11, fill: '#405a65' }}
-            />
+            {showLabels && (
+              <LabelList
+                dataKey={valueKey}
+                position="top"
+                formatter={(value) =>
+                  allowDecimals ? Number(value).toFixed(2) : Number(value).toLocaleString()
+                }
+                style={{ fontSize: 11, fill: '#405a65' }}
+              />
+            )}
           </Bar>
         </BarChart>
       </ResponsiveContainer>

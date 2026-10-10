@@ -8,7 +8,12 @@ from app.backend.services.models import (
     predict_dl,
     CLASS_NAMES,
 )
-from app.backend.services.audio_processing import decode_audio
+from app.backend.services.audio_processing import (
+    decode_audio,
+    extract_annotated_cycle,
+    parse_cycle_annotations,
+    resample_peak_normalize,
+)
 from app.backend.services.classical import artifacts, predict_classical
 
 
@@ -40,6 +45,37 @@ def test_resample_and_fixed_length():
     wav = ROOT / "data/processed/audio/cycles/101/1b1_Al_001.wav"
     y, sr, channels = decode_audio(wav)
     assert y.shape == (20000,) and sr == 4000 and channels == 1 and np.isfinite(y).all()
+
+
+def test_single_cycle_preprocessing_peak_normalizes_at_target_rate():
+    source = np.asarray([0.0, 0.1, -0.2, 0.4, -0.1], dtype=np.float32)
+    output = resample_peak_normalize(source, 4000)
+    assert output.dtype == np.float32
+    assert np.isclose(np.max(np.abs(output)), 1.0)
+
+
+def test_uploaded_annotations_parse_and_extract_dataset_style_cycles():
+    source = np.asarray([0.1, -0.2] * 2000, dtype=np.float32)
+    intervals = parse_cycle_annotations("0.0 0.5 0 0\n0.5 1.0 1 0\n", 1.0)
+    cycles = [extract_annotated_cycle(source, 4000, start, end) for start, end in intervals]
+    assert [len(cycle) for cycle in cycles] == [2000, 2000]
+    assert all(np.isclose(np.max(np.abs(cycle)), 1.0) for cycle in cycles)
+
+
+@pytest.mark.parametrize(
+    "text,duration",
+    [
+        ("0.5 0.2 0 0", 1.0),
+        ("-0.1 0.3 0 0", 1.0),
+        ("0 1.1 0 0", 1.0),
+        ("0 0.7 0 0\n0.6 0.9 0 0", 1.0),
+        ("not timestamps", 1.0),
+        ("", 1.0),
+    ],
+)
+def test_bad_annotation_boundaries_are_rejected(text, duration):
+    with pytest.raises(ValueError):
+        parse_cycle_annotations(text, duration)
 
 
 def test_notebook_sources_remain_present():

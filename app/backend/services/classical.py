@@ -7,11 +7,18 @@ import time
 import joblib
 import librosa
 import numpy as np
+import pandas as pd
 from scipy import stats
 import pywt
 from .models import ROOT, CLASS_NAMES
 
-DIR = ROOT / "models" / "traditional_ml"
+LEGACY_DIR = ROOT / "models" / "traditional_ml"
+PATIENT_DISJOINT_DIR = ROOT / "models" / "traditional_ml_patient_disjoint"
+DIR = (
+    PATIENT_DISJOINT_DIR
+    if (PATIENT_DISJOINT_DIR / "classical_ml_metadata.json").is_file()
+    else LEGACY_DIR
+)
 
 
 @lru_cache(maxsize=1)
@@ -104,8 +111,8 @@ def predict_classical(y, sr=4000, model_ids=None, extracted_features=None):
         raise ValueError(
             "Selected feature extraction incomplete: " + ", ".join(missing)
         )
-    x = np.asarray([[features[k] for k in selected]], dtype=float)
-    if not np.isfinite(x).all():
+    x = pd.DataFrame([[features[k] for k in selected]], columns=selected, dtype=float)
+    if not np.isfinite(x.to_numpy()).all():
         raise ValueError(
             "Feature extraction produced invalid values; use a non-silent recording with enough signal variation"
         )
@@ -153,3 +160,60 @@ def predict_classical(y, sr=4000, model_ids=None, extracted_features=None):
             }
         )
     return out
+
+
+def explain_classical(model_id, extracted_features, target_class):
+    """Estimate local feature effects by replacing one feature with its baseline."""
+    metadata, selected, scaler, encoder, models = artifacts()
+    if model_id not in models:
+        raise ValueError("Unknown traditional model selection")
+    x = pd.DataFrame(
+        [[extracted_features[key] for key in selected]], columns=selected, dtype=float
+    )
+    scaled = bool(metadata["scaler_used"][model_id])
+    model_input = scaler.transform(x) if scaled else x.to_numpy(dtype=float)
+    model = models[model_id]
+
+    def class_name(value):
+        if isinstance(value, (int, np.integer)) or (
+            isinstance(value, str) and value.isdigit()
+        ):
+            return str(encoder.inverse_transform([int(value)])[0])
+        return str(value)
+
+    class_names = [class_name(value) for value in model.classes_]
+    if target_class not in class_names:
+        raise ValueError("Predicted class is missing from the model class mapping")
+    target_index = class_names.index(target_class)
+
+    def target_score(values):
+        if hasattr(model, "predict_proba"):
+            return float(model.predict_proba(values)[0, target_index]), "class probability change"
+        decision = np.asarray(model.decision_function(values))[0]
+        if np.ndim(decision) == 0:
+            score = float(decision if target_index == 1 else -decision)
+        else:
+            score = float(decision[target_index])
+        return score, "decision-score change"
+
+    full_score, score_label = target_score(model_input)
+    baseline_values = (
+        np.zeros_like(model_input, dtype=float)
+        if scaled
+        else np.asarray(scaler.mean_, dtype=float)[None, :]
+    )
+    effects = []
+    for index, feature_name in enumerate(selected):
+        ablated = model_input.copy()
+        ablated[0, index] = baseline_values[0, index]
+        baseline_score, _ = target_score(ablated)
+        effects.append(
+            {"feature": feature_name, "impact": float(full_score - baseline_score)}
+        )
+    effects.sort(key=lambda item: abs(item["impact"]), reverse=True)
+    return {
+        "method": "Single-feature baseline ablation",
+        "target_class": target_class,
+        "score_label": score_label,
+        "features": effects[:10],
+    }

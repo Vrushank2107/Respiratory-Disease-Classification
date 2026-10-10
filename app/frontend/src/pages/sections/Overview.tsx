@@ -1,8 +1,25 @@
-import { Activity, AudioLines, AudioWaveform, BrainCircuit, HeartPulse, Mic2 } from 'lucide-react';
+import {
+  Activity,
+  ArrowRight,
+  AudioLines,
+  AudioWaveform,
+  BrainCircuit,
+  HeartPulse,
+  Mic2,
+} from 'lucide-react';
 type Obj = Record<string, any>;
 import { Card, Chart, MetricTable, Stat } from '../../components/shared';
 
-export default function Overview({ data, models, go }: any) {
+export default function Overview({ data, go }: any) {
+  const models = data.models || [];
+  const diseaseRows = data.dataset?.classes || [];
+  const totalPatients = diseaseRows.reduce(
+    (total: number, row: Obj) => total + Number(row.count || 0),
+    0,
+  );
+  const largestClass = [...diseaseRows].sort(
+    (a: Obj, b: Obj) => Number(b.count || 0) - Number(a.count || 0),
+  )[0];
   return (
     <>
       <div className="hero">
@@ -53,9 +70,9 @@ export default function Overview({ data, models, go }: any) {
           icon={AudioWaveform}
         />
         <Stat
-          label="Verified models"
-          value={`${models.filter((m: Obj) => m.available).length} / 7`}
-          sub="artifacts checked on load"
+          label="Model artifacts present"
+          value={`${models.filter((m: Obj) => m.artifact_exists === true).length} / ${models.length || 7}`}
+          sub="saved artifact inventory"
           icon={BrainCircuit}
         />
       </div>
@@ -66,19 +83,53 @@ export default function Overview({ data, models, go }: any) {
         >
           <Chart data={data.dataset?.classes} />
         </Card>
-        <Card title="Model availability">
+        <Card title="Saved model artifact inventory · 7 models">
           <div className="model-list">
             {models.map((m: Obj) => (
               <div className="model-row" key={m.model_id}>
-                <span className={`status-dot ${m.available ? 'good' : 'bad'}`} />
-                <span>{m.display_name}</span>
+                <span className={`status-dot ${m.artifact_exists ? 'good' : 'bad'}`} />
+                <span>{m.model_name}</span>
                 <small>{m.family === 'deep_learning' ? 'Deep learning' : 'Traditional ML'}</small>
-                <b className={m.available ? 'text-good' : 'text-bad'}>
-                  {m.available ? 'Available' : 'Unavailable'}
+                <b className={m.artifact_exists ? 'text-good' : 'text-bad'}>
+                  {m.artifact_exists ? 'Artifact present' : 'Artifact missing'}
                 </b>
               </div>
             ))}
           </div>
+        </Card>
+      </div>
+      <div className="grid two">
+        <Card title="Project walkthrough · Notebooks 01–18">
+          <div className="overview-journey">
+            {[
+              ['01–03', 'Dataset & EDA', 'eda'],
+              ['04–08', 'Audio & features', 'features'],
+              ['09–13', 'Model development', 'development'],
+              ['14–16', 'Evaluation & XAI', 'evaluation'],
+              ['17–18', 'Artifacts & validation', 'artifacts'],
+            ].map(([range, label, page]) => (
+              <button key={range} onClick={() => go(page)}>
+                <small>NOTEBOOKS {range}</small>
+                <b>{label}</b>
+                <ArrowRight size={15} />
+              </button>
+            ))}
+          </div>
+        </Card>
+        <Card title="How to read the results">
+          <ul className="plain-list overview-notes">
+            <li>
+              {largestClass
+                ? `${largestClass.diagnosis} is the largest diagnosis group (${largestClass.count} of ${totalPatients} patients); overall accuracy can hide weak performance on rare classes.`
+                : 'The cohort has uneven disease support; check per-class metrics alongside accuracy.'}
+            </li>
+            <li>
+              Cycle-level and patient-level metrics answer different questions and are shown
+              separately.
+            </li>
+            <li>Model scores are uncalibrated research outputs, not probabilities of diagnosis.</li>
+            <li>Only Predict Audio accepts a recording and runs live inference.</li>
+          </ul>
         </Card>
       </div>
       <Card
