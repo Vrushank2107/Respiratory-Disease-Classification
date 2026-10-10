@@ -1,12 +1,200 @@
 import type { ReactNode } from 'react';
-import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 type Row = Record<string, any>;
-export function titleCase(value: string) { return value.replaceAll('_', ' ').replace(/\b\w/g, (x) => x.toUpperCase()); }
-export function Card({title,children,aside}:{title:string;children:ReactNode;aside?:ReactNode}) { return <section className="card"><div className="card-head"><h3>{title}</h3>{aside}</div>{children}</section>; }
-export function Stat({label,value,sub,icon:Icon}:any) { return <div className="stat"><div><span>{label}</span><strong>{value??'—'}</strong><small>{sub}</small></div><div className="stat-icon"><Icon size={19}/></div></div>; }
-export function Chart({data,labelKey='diagnosis',valueKey='count',color='#2c9b91'}:any) { if(!data?.length)return <div className="empty">No saved chart data is available.</div>; return <div className="chart"><ResponsiveContainer width="100%" height="100%"><BarChart data={data} margin={{top:20,right:12,left:0,bottom:36}}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey={labelKey} angle={-22} textAnchor="end" interval={0} height={60} tick={{fontSize:12,fill:'#49616b'}}/><YAxis allowDecimals={false} tick={{fontSize:12,fill:'#49616b'}}/><Tooltip contentStyle={{fontSize:12,borderRadius:8}}/><Bar dataKey={valueKey} fill={color} radius={[4,4,0,0]} minPointSize={3}><LabelList dataKey={valueKey} position="top" style={{fontSize:11,fill:'#405a65'}}/></Bar></BarChart></ResponsiveContainer></div>; }
-export function MetricTable({rows}:any) { return <Table rows={rows} columns={['model_family','model','evaluation_unit','accuracy','balanced_accuracy','macro_f1','weighted_f1','split_comparability']}/>; }
-export function Table({rows,columns}:any) { if(!rows?.length)return <div className="empty">No saved results found.</div>; const cols=columns||Object.keys(rows[0]||{}).slice(0,8); return <div className="table-wrap"><table><thead><tr>{cols.map((c:string)=><th key={c}>{titleCase(c)}</th>)}</tr></thead><tbody>{rows.slice(0,80).map((r:Row,i:number)=><tr key={i}>{cols.map((c:string)=><td key={c}>{r[c]===null||r[c]===undefined?'—':typeof r[c]==='number'?Number(r[c]).toLocaleString(undefined,{maximumFractionDigits:4}):String(r[c])}</td>)}</tr>)}</tbody></table></div>; }
-export function SignalPlot({values}:any) { if(!values?.length)return <div className="empty">No samples to plot.</div>; const max=Math.max(...values.map((x:number)=>Math.abs(x)),1e-6); const points=values.map((x:number,i:number)=>`${(i/(values.length-1||1))*1000},${90-x/max*78}`).join(' '); return <div className="signal"><svg viewBox="0 0 1000 180" preserveAspectRatio="none" role="img" aria-label="Audio waveform"><path d="M0 90 H1000" stroke="#dce7e7" strokeDasharray="4 5"/><polyline points={points} fill="none" stroke="#258d83" strokeWidth="1.6" vectorEffect="non-scaling-stroke"/></svg></div>; }
-export function Heatmap({matrix}:any) { if(!matrix?.length)return <div className="empty">No feature data.</div>; const rows=matrix.length,cols=Math.min(matrix[0]?.length||0,120),stride=Math.max(1,Math.floor((matrix[0]?.length||0)/cols)); let lo=Infinity,hi=-Infinity; for(const row of matrix)for(let i=0;i<row.length;i+=stride){lo=Math.min(lo,row[i]);hi=Math.max(hi,row[i]);} const cells=[]; for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){const index=Math.round(c*(matrix[0].length-1)/Math.max(1,cols-1));const v=matrix[r][index]??0,t=(v-lo)/(hi-lo||1),h=190+(1-t)*40,s=35+t*35,l=96-t*52;cells.push(<rect key={`${r}-${c}`} x={c*1000/cols} y={r*210/rows} width={1000/cols+0.4} height={210/rows+0.4} fill={`hsl(${h} ${s}% ${l}%)`}/>);} return <div className="heatmap"><svg viewBox="0 0 1000 210" preserveAspectRatio="none" role="img" aria-label="Feature heatmap">{cells}</svg></div>; }
+export function titleCase(value: string) {
+  return value.replaceAll('_', ' ').replace(/\b\w/g, (x) => x.toUpperCase());
+}
+export function Card({
+  title,
+  children,
+  aside,
+}: {
+  title: string;
+  children: ReactNode;
+  aside?: ReactNode;
+}) {
+  return (
+    <section className="card">
+      <div className="card-head">
+        <h3>{title}</h3>
+        {aside}
+      </div>
+      {children}
+    </section>
+  );
+}
+export function Stat({ label, value, sub, icon: Icon }: any) {
+  return (
+    <div className="stat">
+      <div>
+        <span>{label}</span>
+        <strong>{value ?? '—'}</strong>
+        <small>{sub}</small>
+      </div>
+      <div className="stat-icon">
+        <Icon size={19} />
+      </div>
+    </div>
+  );
+}
+export function Chart({
+  data,
+  labelKey = 'diagnosis',
+  valueKey = 'count',
+  color = '#2c9b91',
+}: any) {
+  if (!data?.length) return <div className="empty">No saved chart data is available.</div>;
+  return (
+    <div className="chart">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 20, right: 12, left: 0, bottom: 36 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis
+            dataKey={labelKey}
+            angle={-22}
+            textAnchor="end"
+            interval={0}
+            height={60}
+            tick={{ fontSize: 12, fill: '#49616b' }}
+          />
+          <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#49616b' }} />
+          <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8 }} />
+          <Bar dataKey={valueKey} fill={color} radius={[4, 4, 0, 0]} minPointSize={3}>
+            <LabelList
+              dataKey={valueKey}
+              position="top"
+              style={{ fontSize: 11, fill: '#405a65' }}
+            />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+export function MetricTable({ rows }: any) {
+  return (
+    <Table
+      rows={rows}
+      columns={[
+        'model_family',
+        'model',
+        'evaluation_unit',
+        'accuracy',
+        'balanced_accuracy',
+        'macro_f1',
+        'weighted_f1',
+        'split_comparability',
+      ]}
+    />
+  );
+}
+export function Table({ rows, columns }: any) {
+  if (!rows?.length) return <div className="empty">No saved results found.</div>;
+  const cols = columns || Object.keys(rows[0] || {}).slice(0, 8);
+  return (
+    <div className="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            {cols.map((c: string) => (
+              <th key={c}>{titleCase(c)}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.slice(0, 80).map((r: Row, i: number) => (
+            <tr key={i}>
+              {cols.map((c: string) => (
+                <td key={c}>
+                  {r[c] === null || r[c] === undefined
+                    ? '—'
+                    : typeof r[c] === 'number'
+                      ? Number(r[c]).toLocaleString(undefined, { maximumFractionDigits: 4 })
+                      : String(r[c])}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+export function SignalPlot({ values }: any) {
+  if (!values?.length) return <div className="empty">No samples to plot.</div>;
+  const max = Math.max(...values.map((x: number) => Math.abs(x)), 1e-6);
+  const points = values
+    .map(
+      (x: number, i: number) => `${(i / (values.length - 1 || 1)) * 1000},${90 - (x / max) * 78}`,
+    )
+    .join(' ');
+  return (
+    <div className="signal">
+      <svg viewBox="0 0 1000 180" preserveAspectRatio="none" role="img" aria-label="Audio waveform">
+        <path d="M0 90 H1000" stroke="#dce7e7" strokeDasharray="4 5" />
+        <polyline
+          points={points}
+          fill="none"
+          stroke="#258d83"
+          strokeWidth="1.6"
+          vectorEffect="non-scaling-stroke"
+        />
+      </svg>
+    </div>
+  );
+}
+export function Heatmap({ matrix }: any) {
+  if (!matrix?.length) return <div className="empty">No feature data.</div>;
+  const rows = matrix.length,
+    cols = Math.min(matrix[0]?.length || 0, 120),
+    stride = Math.max(1, Math.floor((matrix[0]?.length || 0) / cols));
+  let lo = Infinity,
+    hi = -Infinity;
+  for (const row of matrix)
+    for (let i = 0; i < row.length; i += stride) {
+      lo = Math.min(lo, row[i]);
+      hi = Math.max(hi, row[i]);
+    }
+  const cells = [];
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      const index = Math.round((c * (matrix[0].length - 1)) / Math.max(1, cols - 1));
+      const v = matrix[r][index] ?? 0,
+        t = (v - lo) / (hi - lo || 1),
+        h = 190 + (1 - t) * 40,
+        s = 35 + t * 35,
+        l = 96 - t * 52;
+      cells.push(
+        <rect
+          key={`${r}-${c}`}
+          x={(c * 1000) / cols}
+          y={(r * 210) / rows}
+          width={1000 / cols + 0.4}
+          height={210 / rows + 0.4}
+          fill={`hsl(${h} ${s}% ${l}%)`}
+        />,
+      );
+    }
+  return (
+    <div className="heatmap">
+      <svg
+        viewBox="0 0 1000 210"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label="Feature heatmap"
+      >
+        {cells}
+      </svg>
+    </div>
+  );
+}

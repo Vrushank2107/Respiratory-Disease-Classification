@@ -2,4 +2,95 @@ import { Activity, AudioLines, AudioWaveform, BrainCircuit, HeartPulse, Mic2 } f
 type Obj = Record<string, any>;
 import { Card, Chart, MetricTable, Stat } from '../../components/shared';
 
-export default function Overview({data,models,go}:any){return <><div className="hero"><div><div className="hero-tag"><span/> RESEARCH DASHBOARD</div><h2>Understanding respiratory health<br/>through sound.</h2><p>A research platform for exploring lung-sound data, model evaluation, and explainability.</p><button onClick={()=>go('predict')} className="primary"><Mic2 size={16}/> Analyze an audio sample <span>→</span></button></div><div className="hero-art"><div className="ring r1"/><div className="ring r2"/><div className="lungs"><Activity size={67}/></div><div className="mini-label"><span className="pulse"/> SIGNAL ANALYSIS</div></div></div><div className="stats"><Stat label="Patients" value={data.dataset?.patients} sub="cleaned dataset" icon={HeartPulse}/><Stat label="Recordings" value={data.dataset?.recordings} sub="unique recordings" icon={AudioLines}/><Stat label="Respiratory cycles" value={data.dataset?.cycles?.toLocaleString()} sub="after data cleaning" icon={AudioWaveform}/><Stat label="Verified models" value={`${models.filter((m:Obj)=>m.available).length} / 7`} sub="artifacts checked on load" icon={BrainCircuit}/></div><div className="grid two"><Card title="Disease distribution" aside={<span className="card-note">Cleaned patient cohort</span>}><Chart data={data.dataset?.classes}/></Card><Card title="Model availability"><div className="model-list">{models.map((m:Obj)=><div className="model-row" key={m.model_id}><span className={`status-dot ${m.available?'good':'bad'}`}/><span>{m.display_name}</span><small>{m.family==='deep_learning'?'Deep learning':'Traditional ML'}</small><b className={m.available?'text-good':'text-bad'}>{m.available?'Available':'Unavailable'}</b></div>)}</div></Card></div><Card title="Research highlights" aside={<span className="card-note">Saved cycle-level test results · splits not verified equivalent</span>}><MetricTable rows={data.highlights||[]}/></Card></>}
+export default function Overview({ data, models, go }: any) {
+  return (
+    <>
+      <div className="hero">
+        <div>
+          <div className="hero-tag">
+            <span /> RESEARCH DASHBOARD
+          </div>
+          <h2>
+            Understanding respiratory health
+            <br />
+            through sound.
+          </h2>
+          <p>
+            A research platform for exploring lung-sound data, model evaluation, and explainability.
+          </p>
+          <button onClick={() => go('predict')} className="primary">
+            <Mic2 size={16} /> Analyze an audio sample <span>→</span>
+          </button>
+        </div>
+        <div className="hero-art">
+          <div className="ring r1" />
+          <div className="ring r2" />
+          <div className="lungs">
+            <Activity size={67} />
+          </div>
+          <div className="mini-label">
+            <span className="pulse" /> SIGNAL ANALYSIS
+          </div>
+        </div>
+      </div>
+      <div className="stats">
+        <Stat
+          label="Patients"
+          value={data.dataset?.patients}
+          sub="cleaned dataset"
+          icon={HeartPulse}
+        />
+        <Stat
+          label="Recordings"
+          value={data.dataset?.recordings}
+          sub="unique recordings"
+          icon={AudioLines}
+        />
+        <Stat
+          label="Respiratory cycles"
+          value={data.dataset?.cycles?.toLocaleString()}
+          sub="after data cleaning"
+          icon={AudioWaveform}
+        />
+        <Stat
+          label="Verified models"
+          value={`${models.filter((m: Obj) => m.available).length} / 7`}
+          sub="artifacts checked on load"
+          icon={BrainCircuit}
+        />
+      </div>
+      <div className="grid two">
+        <Card
+          title="Disease distribution"
+          aside={<span className="card-note">Cleaned patient cohort</span>}
+        >
+          <Chart data={data.dataset?.classes} />
+        </Card>
+        <Card title="Model availability">
+          <div className="model-list">
+            {models.map((m: Obj) => (
+              <div className="model-row" key={m.model_id}>
+                <span className={`status-dot ${m.available ? 'good' : 'bad'}`} />
+                <span>{m.display_name}</span>
+                <small>{m.family === 'deep_learning' ? 'Deep learning' : 'Traditional ML'}</small>
+                <b className={m.available ? 'text-good' : 'text-bad'}>
+                  {m.available ? 'Available' : 'Unavailable'}
+                </b>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+      <Card
+        title="Research highlights"
+        aside={
+          <span className="card-note">
+            Saved cycle-level test results · splits not verified equivalent
+          </span>
+        }
+      >
+        <MetricTable rows={data.highlights || []} />
+      </Card>
+    </>
+  );
+}

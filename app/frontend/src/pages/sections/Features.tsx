@@ -1,4 +1,38 @@
 type Obj = Record<string, any>;
 import { Card, Table } from '../../components/shared';
 
-export default function Features({data}:any){return <><div className="grid two"><Card title="Consensus feature ranking"><Table rows={(data.ranking||[]).slice(0,12)} columns={['feature','consensus_score','average_rank','rf_importance']}/></Card><Card title="Selected feature set"><div className="chips">{(data.selected_features||[]).map((x:Obj)=><span key={x.feature||x}>{x.feature||x}</span>)}</div><p className="subtle">Traditional classifiers use a saved 33-feature list in its exact stored order.</p></Card></div><div className="grid two"><Card title="PCA explained variance"><Table rows={data.pca||[]} /></Card><Card title="K-means cluster analysis"><Table rows={data.clusters||[]} /><p className="subtle">Clusters are unsupervised groupings and are not interpreted as disease classes.</p></Card></div></>}
+export default function Features({ data }: any) {
+  return (
+    <>
+      <div className="grid two">
+        <Card title="Consensus feature ranking">
+          <Table
+            rows={(data.ranking || []).slice(0, 12)}
+            columns={['feature', 'consensus_score', 'average_rank', 'rf_importance']}
+          />
+        </Card>
+        <Card title="Selected feature set">
+          <div className="chips">
+            {(data.selected_features || []).map((x: Obj) => (
+              <span key={x.feature || x}>{x.feature || x}</span>
+            ))}
+          </div>
+          <p className="subtle">
+            Traditional classifiers use a saved 33-feature list in its exact stored order.
+          </p>
+        </Card>
+      </div>
+      <div className="grid two">
+        <Card title="PCA explained variance">
+          <Table rows={data.pca || []} />
+        </Card>
+        <Card title="K-means cluster analysis">
+          <Table rows={data.clusters || []} />
+          <p className="subtle">
+            Clusters are unsupervised groupings and are not interpreted as disease classes.
+          </p>
+        </Card>
+      </div>
+    </>
+  );
+}

@@ -44,6 +44,17 @@ python -m pip install -r app/backend/requirements.txt
 uvicorn app.backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
+## Format the application code
+
+Frontend formatting uses Prettier:
+
+```bash
+cd app/frontend
+npm run format
+```
+
+Check frontend formatting without changing files with `npm run format:check`. Backend formatting uses Ruff; install it with `python -m pip install ruff`, then run `ruff format app/backend` from the repository root.
+
 ## Deployment
 
 The frontend is deployed on Vercel from `app/frontend`; the production API origin is configured in `app/frontend/.env.production`. The FastAPI backend is deployed on Render as a Docker web service from the repository root `Dockerfile`.
