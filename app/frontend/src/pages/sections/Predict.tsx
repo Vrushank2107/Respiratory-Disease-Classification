@@ -38,7 +38,7 @@ export default function Predict({ models, selected, setSelected, file, setFile, 
           <span>{file ? `${(file.size / 1024 / 1024).toFixed(2)} MB · WAV` : 'Click to browse · maximum 20 MB'}</span>
         </label>
         {file && <audio controls src={audioUrl}/>}
-        <p className="small-note">Processed locally. Mono and multichannel recordings are supported.</p>
+        <p className="small-note">The selected recording is sent to the configured API for analysis. Mono and multichannel recordings are supported.</p>
       </Card>
 
       <Card title="2 · Select models" aside={<button className="text-button" onClick={() => setSelected(available.map((model: Obj) => model.model_id))}>Select all available</button>}>
