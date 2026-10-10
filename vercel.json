@@ -1,0 +1,33 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "services": {
+    "backend": {
+      "root": ".",
+      "framework": "fastapi",
+      "entrypoint": "app.backend.main:app",
+      "installCommand": "pip install -r app/backend/requirements.txt",
+      "functions": {
+        "app/backend/main.py": {
+          "includeFiles": "{data/processed/**,models/**,reports/final_artifacts/**}",
+          "maxDuration": 300
+        }
+      }
+    },
+    "frontend": {
+      "root": "app/frontend",
+      "framework": "vite",
+      "buildCommand": "npm run build",
+      "outputDirectory": "dist"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": { "service": "backend" }
+    },
+    {
+      "source": "/(.*)",
+      "destination": { "service": "frontend" }
+    }
+  ]
+}
