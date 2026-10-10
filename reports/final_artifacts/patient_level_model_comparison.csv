@@ -1,0 +1,3 @@
+rank,aggregation_method,accuracy,balanced_accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,evaluation_unit,source_file
+1,Majority Vote,0.56,0.3333333333333333,0.1328125,0.25,0.1620689655172413,0.4822068965517241,patient,data/processed/deep_learning/patient_level_prediction/patient_aggregation_comparison.csv
+2,Mean Probability,0.56,0.3333333333333333,0.1328125,0.25,0.1620689655172413,0.4822068965517241,patient,data/processed/deep_learning/patient_level_prediction/patient_aggregation_comparison.csv

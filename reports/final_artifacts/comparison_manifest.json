@@ -1,0 +1,18 @@
+{
+  "project": "Respiratory Disease Classification",
+  "generated_from_existing_results": true,
+  "retraining_performed": false,
+  "outputs": [
+    {
+      "file": "cycle_level_model_comparison.csv",
+      "rows": 7,
+      "size_bytes": 2175
+    },
+    {
+      "file": "patient_level_model_comparison.csv",
+      "rows": 2,
+      "size_bytes": 512
+    }
+  ],
+  "important_caveat": "Cycle-level results are consolidated for review, but direct model ranking requires verification that the models used the same held-out test patients and cycles. Patient-level results are stored separately."
+}

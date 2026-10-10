@@ -1,0 +1,11 @@
+model,validation_check,result,details
+Logistic Regression,Saved predictions reproduced,PASS,100% agreement with saved predictions
+SVM,Saved predictions reproduced,PASS,100% agreement with saved predictions
+Random Forest,Saved predictions reproduced,PASS,100% agreement with saved predictions
+Lightweight Mel CNN,Saved predictions reproduced,PASS,1561/1561 predictions matched
+CNN-LSTM,Saved predictions reproduced,PASS,1561/1561 predictions matched
+Multi-feature CNN (12A),Saved predictions reproduced,PASS,1561/1561 predictions matched
+Regularized Multi-feature CNN (12B),Saved predictions reproduced,PASS,1561/1561 predictions matched
+Multi-feature CNN (12A),Probability integrity and label consistency,PASS,Finite probabilities; row sums approximately 1; argmax matches labels
+Regularized Multi-feature CNN (12B),Probability integrity and label consistency,PASS,Finite probabilities; row sums approximately 1; argmax matches labels
+Deep-learning artifacts,Expected artifact inventory,PASS,18/18 expected artifacts present

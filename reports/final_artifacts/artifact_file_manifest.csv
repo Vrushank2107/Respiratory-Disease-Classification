@@ -1,0 +1,17 @@
+experiment,artifact_type,path,exists,size_bytes
+Lightweight Mel CNN,checkpoint,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/cnn_baseline/best_lightweight_mel_cnn.pt,True,310935
+Lightweight Mel CNN,metrics,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/cnn_baseline/cnn_baseline_metrics.csv,True,309
+Lightweight Mel CNN,predictions,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/cnn_baseline/cnn_test_predictions.csv,True,223653
+Lightweight Mel CNN,training_history,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/cnn_baseline/cnn_training_history.csv,True,3380
+CNN-LSTM,checkpoint,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/cnn_lstm/best_cnn_lstm.pt,True,373412
+CNN-LSTM,metrics,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/cnn_lstm/cnn_lstm_metrics.csv,True,325
+CNN-LSTM,predictions,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/cnn_lstm/cnn_lstm_test_predictions.csv,True,210365
+CNN-LSTM,training_history,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/cnn_lstm/cnn_lstm_training_history.csv,True,1335
+Multi-Feature CNN,checkpoint,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn/best_multifeature_cnn.pt,True,464538
+Multi-Feature CNN,metrics,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn/multifeature_cnn_metrics.csv,True,288
+Multi-Feature CNN,predictions,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn/multifeature_cnn_test_predictions.csv,True,167848
+Multi-Feature CNN,training_history,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn/multifeature_cnn_training_history.csv,True,369
+Regularized Multi-Feature CNN (12B),checkpoint,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn_12b/best_regularized_multifeature_cnn.pt,True,465550
+Regularized Multi-Feature CNN (12B),metrics,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn_12b/metrics.csv,True,306
+Regularized Multi-Feature CNN (12B),predictions,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn_12b/test_predictions.csv,True,146993
+Regularized Multi-Feature CNN (12B),training_history,/Users/vs/Sem 5/Respiratory-Disease-Classification/data/processed/deep_learning/multifeature_cnn_12b/training_history.csv,True,837

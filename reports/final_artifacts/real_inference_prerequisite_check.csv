@@ -1,0 +1,5 @@
+model,file_exists,rows,columns_available,status
+Lightweight Mel CNN,True,1561,"patient_id, recording_id, chest_location, diagnosis, disease_label, official_split, audio_path, cnn_split, true_label, predicted_label, true_disease, predicted_disease",READABLE
+CNN-LSTM,True,1561,"patient_id, recording_id, chest_location, diagnosis, disease_label, official_split, audio_path, cnn_split, predicted_disease_label, predicted_diagnosis",READABLE
+Multi-Feature CNN,True,1561,"true_label, predicted_label, prob_Asthma, prob_Bronchiectasis, prob_Bronchiolitis, prob_COPD, prob_Healthy, prob_LRTI, prob_Pneumonia, prob_URTI",READABLE
+Regularized Multi-Feature CNN,True,1561,"true_label, predicted_label, prob_Asthma, prob_Bronchiectasis, prob_Bronchiolitis, prob_COPD, prob_Healthy, prob_LRTI, prob_Pneumonia, prob_URTI",READABLE

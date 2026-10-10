@@ -1,0 +1,5 @@
+model,checkpoint_exists,architecture_loaded,state_dict_loaded,missing_keys,unexpected_keys,inference_passed,status
+Lightweight Mel CNN,True,True,True,0,0,True,PASS
+CNN-LSTM,True,True,True,0,0,True,PASS
+Multi-Feature CNN,True,True,True,0,0,True,PASS
+Regularized Multi-Feature CNN,True,True,True,0,0,True,PASS

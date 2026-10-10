@@ -1,0 +1,18 @@
+{
+  "project": "Respiratory Disease Classification",
+  "generated_at_utc": "2026-10-09T18:04:52.384874+00:00",
+  "project_root": "/Users/vs/Sem 5/Respiratory-Disease-Classification",
+  "python_version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "inventory_file": "reports/artifact_inventory.csv",
+  "inventory_file_count": 1063,
+  "registered_experiment_count": 0,
+  "registered_metric_rows_loaded": 0,
+  "metric_load_error_count": 0,
+  "notes": [
+    "No model training was performed by this notebook.",
+    "File discovery does not verify scientific validity of an experiment.",
+    "Cycle-level, recording-level, and patient-level evaluations must remain distinct.",
+    "Only registered and successfully loaded metric files are included in consolidated metrics."
+  ]
+}

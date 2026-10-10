@@ -1,0 +1,5 @@
+model,metric_file_exists,prediction_file_exists,reported_test_samples,prediction_rows,counts_match,status
+Lightweight Mel CNN,True,True,1561,1561,True,PASS
+CNN-LSTM,True,True,1561,1561,True,PASS
+Multi-Feature CNN,True,True,1561,1561,True,PASS
+Regularized Multi-Feature CNN (12B),True,True,1561,1561,True,PASS

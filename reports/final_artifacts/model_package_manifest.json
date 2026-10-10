@@ -1,0 +1,162 @@
+[
+  {
+    "model_id": "cnn_lstm",
+    "artifact": "logmel_train_normalization.csv",
+    "relative_path": "models/saved_models/cnn_lstm/logmel_train_normalization.csv",
+    "size_bytes": 62,
+    "sha256": "8704674c3456062030052cab13cb362f061a783efec4ab8824ab4708e5fa0c5e",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "cnn_lstm",
+    "artifact": "cnn_lstm_training_history.csv",
+    "relative_path": "models/saved_models/cnn_lstm/cnn_lstm_training_history.csv",
+    "size_bytes": 1335,
+    "sha256": "3155e5b21cf8737fc05431ec57164d50b52f25a3179899e38c6667fcab6fcd16",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "cnn_lstm",
+    "artifact": "best_cnn_lstm.pt",
+    "relative_path": "models/saved_models/cnn_lstm/best_cnn_lstm.pt",
+    "size_bytes": 373412,
+    "sha256": "b9857e691d87c8c6be563002838f66346da2ef9a8ba6ccd441b8fcb0a32253b7",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "cnn_lstm",
+    "artifact": "cnn_lstm_training_config.json",
+    "relative_path": "models/saved_models/cnn_lstm/cnn_lstm_training_config.json",
+    "size_bytes": 682,
+    "sha256": "475dbef065fa1e926fd84a4d4e11581ed29a6d5393f86aa7bea312d9f8808ec3",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "cnn_lstm",
+    "artifact": "cnn_lstm_test_predictions.csv",
+    "relative_path": "models/saved_models/cnn_lstm/cnn_lstm_test_predictions.csv",
+    "size_bytes": 210365,
+    "sha256": "81fa11385d52f773e0c33996fdaa8f695a2cc111d92908348b862e8284973be2",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "lightweight_mel_cnn",
+    "artifact": "logmel_train_normalization.csv",
+    "relative_path": "models/saved_models/lightweight_mel_cnn/logmel_train_normalization.csv",
+    "size_bytes": 62,
+    "sha256": "8704674c3456062030052cab13cb362f061a783efec4ab8824ab4708e5fa0c5e",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "lightweight_mel_cnn",
+    "artifact": "cnn_test_predictions.csv",
+    "relative_path": "models/saved_models/lightweight_mel_cnn/cnn_test_predictions.csv",
+    "size_bytes": 223653,
+    "sha256": "9f8434e2c56cb326cf46fa61fb9964eaae480ca32b507e2234faffb84ae53466",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "lightweight_mel_cnn",
+    "artifact": "cnn_training_config.json",
+    "relative_path": "models/saved_models/lightweight_mel_cnn/cnn_training_config.json",
+    "size_bytes": 459,
+    "sha256": "262022167bf08f6c1f26b6c113923bcd4373824af5f3c3e8812eb2dfe14814bb",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "lightweight_mel_cnn",
+    "artifact": "best_lightweight_mel_cnn.pt",
+    "relative_path": "models/saved_models/lightweight_mel_cnn/best_lightweight_mel_cnn.pt",
+    "size_bytes": 310935,
+    "sha256": "a4ab3323f2db471810cfbee86cc3f490db58ee2bb62797936a5eff44a4def651",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "lightweight_mel_cnn",
+    "artifact": "cnn_training_history.csv",
+    "relative_path": "models/saved_models/lightweight_mel_cnn/cnn_training_history.csv",
+    "size_bytes": 3380,
+    "sha256": "075181a6b7e8640681ece640391f40689f76fbe163d937b35298a23df34bd9e7",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "multifeature_cnn",
+    "artifact": "multifeature_cnn_test_predictions.csv",
+    "relative_path": "models/saved_models/multifeature_cnn/multifeature_cnn_test_predictions.csv",
+    "size_bytes": 167848,
+    "sha256": "dabcd8198c3e0475f3372a32746d24b3fed9468dcff0e91cdb8031efd3eccfc6",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "multifeature_cnn",
+    "artifact": "multifeature_cnn_training_history.csv",
+    "relative_path": "models/saved_models/multifeature_cnn/multifeature_cnn_training_history.csv",
+    "size_bytes": 369,
+    "sha256": "3b08546830d43705ef50ec2a790d3f045613ddfb25a128ad7c03f2eaaa222b6a",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "multifeature_cnn",
+    "artifact": "multifeature_cnn_training_config.json",
+    "relative_path": "models/saved_models/multifeature_cnn/multifeature_cnn_training_config.json",
+    "size_bytes": 528,
+    "sha256": "afb07d114992fb14f87e6031585c2532e66f66d594ce7c0e3c17143834e3e848",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "multifeature_cnn",
+    "artifact": "multifeature_train_normalization.csv",
+    "relative_path": "models/saved_models/multifeature_cnn/multifeature_train_normalization.csv",
+    "size_bytes": 182,
+    "sha256": "66761249ca7cb0d970f5dfd4adac560a3fd8b6aded15f0c2a187128290f158f1",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "multifeature_cnn",
+    "artifact": "best_multifeature_cnn.pt",
+    "relative_path": "models/saved_models/multifeature_cnn/best_multifeature_cnn.pt",
+    "size_bytes": 464538,
+    "sha256": "dc0d51c55c48bb222b54c10a5f520bd4ca27c7d7483bcd30025f5208f425a51e",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "regularized_multifeature_cnn",
+    "artifact": "best_regularized_multifeature_cnn.pt",
+    "relative_path": "models/saved_models/regularized_multifeature_cnn/best_regularized_multifeature_cnn.pt",
+    "size_bytes": 465550,
+    "sha256": "dc62347524cca4deaec06b7c5d993889db3dc04ca949dc717ae8c49d4db0f8fb",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "regularized_multifeature_cnn",
+    "artifact": "test_predictions.csv",
+    "relative_path": "models/saved_models/regularized_multifeature_cnn/test_predictions.csv",
+    "size_bytes": 146993,
+    "sha256": "64ac1f0e26859290cc46b3a7b15f14b19593e7401298c8041ed9e70ca7d927a8",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "regularized_multifeature_cnn",
+    "artifact": "training_history.csv",
+    "relative_path": "models/saved_models/regularized_multifeature_cnn/training_history.csv",
+    "size_bytes": 837,
+    "sha256": "e074b9c021b6dd8aba61b8e07d1fb155c224f38bcde10942c013aae1736259af",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "regularized_multifeature_cnn",
+    "artifact": "training_config.json",
+    "relative_path": "models/saved_models/regularized_multifeature_cnn/training_config.json",
+    "size_bytes": 600,
+    "sha256": "7bc6d4a0b44a1d4185c82cbdb11861bb37c764d2eb52245322df16986a394398",
+    "status": "PRESENT"
+  },
+  {
+    "model_id": "regularized_multifeature_cnn",
+    "artifact": "normalization",
+    "relative_path": null,
+    "size_bytes": null,
+    "sha256": null,
+    "status": "MISSING_OR_NOT_IDENTIFIED"
+  }
+]

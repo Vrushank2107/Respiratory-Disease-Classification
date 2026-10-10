@@ -1,0 +1,23 @@
+{
+    "batch_size": 32,
+    "max_epochs": 40,
+    "early_stopping_patience": 7,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "scheduler": "ReduceLROnPlateau",
+    "scheduler_factor": 0.5,
+    "scheduler_patience": 3,
+    "scheduler_min_lr": 1e-06,
+    "loss": "weighted_cross_entropy",
+    "optimizer": "Adam",
+    "augmentation": [
+        "random_time_shift",
+        "gaussian_noise"
+    ],
+    "feature_inputs": [
+        "Log-Mel",
+        "MFCC",
+        "Chroma"
+    ],
+    "patient_disjoint_split": true
+}

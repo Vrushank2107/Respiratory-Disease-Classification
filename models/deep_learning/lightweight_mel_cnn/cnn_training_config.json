@@ -1,0 +1,18 @@
+{
+    "batch_size": 32,
+    "learning_rate": 0.001,
+    "weight_decay": 0.0001,
+    "max_epochs": 40,
+    "early_stopping_patience": 7,
+    "lr_reduction_factor": 0.5,
+    "lr_scheduler_patience": 3,
+    "minimum_learning_rate": 1e-06,
+    "optimizer": "Adam",
+    "loss": "Weighted CrossEntropyLoss",
+    "augmentation": [
+        "Gaussian noise",
+        "random time shift"
+    ],
+    "augmentation_training_only": true,
+    "validation_monitor": "loss"
+}

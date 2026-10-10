@@ -1,0 +1,22 @@
+category,item,path,requirement,status,details
+Model package,Lightweight Mel CNN package directory,models/saved_models/lightweight_mel_cnn,Required,PASS,Directory exists
+Model checkpoint,Lightweight Mel CNN checkpoint,models/saved_models/lightweight_mel_cnn/best_lightweight_mel_cnn.pt,Required,PASS,"File exists (310,935 bytes)"
+Model package,CNN-LSTM package directory,models/saved_models/cnn_lstm,Required,PASS,Directory exists
+Model checkpoint,CNN-LSTM checkpoint,models/saved_models/cnn_lstm/best_cnn_lstm.pt,Required,PASS,"File exists (373,412 bytes)"
+Model package,Multi-Feature CNN package directory,models/saved_models/multifeature_cnn,Required,PASS,Directory exists
+Model checkpoint,Multi-Feature CNN checkpoint,models/saved_models/multifeature_cnn/best_multifeature_cnn.pt,Required,PASS,"File exists (464,538 bytes)"
+Model package,Regularized Multi-Feature CNN package directory,models/saved_models/regularized_multifeature_cnn,Required,PASS,Directory exists
+Model checkpoint,Regularized Multi-Feature CNN checkpoint,models/saved_models/regularized_multifeature_cnn/best_regularized_multifeature_cnn.pt,Required,PASS,"File exists (465,550 bytes)"
+Final report,final_results_report.md,reports/final_artifacts/final_results_report.md,Required,PASS,"File exists (15,082 bytes)"
+Final report,final_results_source_inventory.csv,reports/final_artifacts/final_results_source_inventory.csv,Required,PASS,"File exists (1,522 bytes)"
+Final report,cycle_level_model_comparison.csv,reports/final_artifacts/cycle_level_model_comparison.csv,Required,PASS,"File exists (2,175 bytes)"
+Final report,patient_level_model_comparison.csv,reports/final_artifacts/patient_level_model_comparison.csv,Required,PASS,File exists (512 bytes)
+Final report,model_registry.csv,reports/final_artifacts/model_registry.csv,Required,PASS,"File exists (2,243 bytes)"
+Final report,model_package_manifest.csv,reports/final_artifacts/model_package_manifest.csv,Required,PASS,"File exists (3,822 bytes)"
+Final report,model_package_manifest.json,reports/final_artifacts/model_package_manifest.json,Required,PASS,"File exists (6,197 bytes)"
+Final report,artifact_inventory.csv,reports/final_artifacts/artifact_inventory.csv,Required,PASS,"File exists (1,153,468 bytes)"
+Final report,architecture_inference_validation.csv,reports/final_artifacts/architecture_inference_validation.csv,Required,PASS,File exists (308 bytes)
+Final report,prediction_validation.csv,reports/final_artifacts/prediction_validation.csv,Required,PASS,"File exists (1,992 bytes)"
+Final report,checkpoint_integrity_check.csv,reports/final_artifacts/checkpoint_integrity_check.csv,Required,PASS,"File exists (6,293 bytes)"
+Notebook,Notebook 17,notebooks/17_Final_Artifact_Generation_and_Validation.ipynb,Required,PASS,"File exists (196,122 bytes)"
+Tests,Project tests directory,tests,Required,PASS,Directory exists
