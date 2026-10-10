@@ -13,6 +13,8 @@ An academic research project for analyzing respiratory sounds from the ICBHI 201
 
 The dashboard is hosted on Vercel and uses the separately hosted Render API. The API root may return `404`; use `/api/health`, `/api/models`, or `/docs` to check it. Render free services have resource and availability limits, so inference performance may vary.
 
+For the full project history and technical walkthrough, see [the detailed project documentation](docs/PROJECT_DOCUMENTATION.md). It covers notebooks 01–18, data and model artifacts, evaluation results, application pages and API, prediction flow, and deployment.
+
 ## What is included
 
 - **Research workflow:** 18 Jupyter notebooks cover dataset understanding, cleaning, EDA, audio processing, feature work, classical and deep learning, patient-level aggregation, explainability, and validation.
@@ -20,7 +22,7 @@ The dashboard is hosted on Vercel and uses the separately hosted Render API. The
 - **Dashboard:** dataset and EDA views, audio pipeline and feature summaries, model comparison, patient analysis, saved explainability examples, reports, system status, and WAV prediction.
 - **API:** FastAPI reads the saved research artifacts and runs inference; prediction uploads are processed in memory and are not retained.
 
-The dashboard reports the saved dataset summary as **126 patients, 34 recordings, and 6,898 respiratory cycles**. Class counts and evaluation outputs are available in the app and under `data/processed/` and `reports/final_artifacts/`.
+The cleaned dataset contains **126 patients, 920 WAV recordings, and 6,898 respiratory cycles**. The current dashboard recording card mistakenly counts 34 distinct short recording codes instead of unique WAV files; the detailed documentation explains this known API summary issue. Class counts and evaluation outputs are available in the app and under `data/processed/` and `reports/final_artifacts/`.
 
 ## Repository layout
 
