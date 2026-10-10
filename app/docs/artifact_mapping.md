@@ -1,0 +1,28 @@
+# Artifact to application mapping
+
+Audit performed 2026-10-10. The application reads assets relative to the repository root (`app/backend/services/models.py`), independent of the process working directory. No notebook, source dataset, or checkpoint is copied into `app/`.
+
+| Application section | Verified source artifacts | Integration and caveats |
+|---|---|---|
+| Overview / dataset counts | `data/processed/patients_clean.csv`, `recordings_clean.csv`, `cycles_clean.csv`, `eda/disease_distribution.csv` | Counts refer to cleaned tables, and patient, recording, and cycle units stay distinct. |
+| Cleaning / EDA | `data/interim/{patients,recordings,cycles,audio_info,filename_validation,cycles_validation}.csv`; `data/processed/cleaning_summary.csv`, `eda/*.csv`; notebooks 01–03 | Raw filename tables are not exposed. Processed summary tables feed the UI. |
+| Audio pipeline | `processed_cycles.csv`, `deep_learning/logmel_train_normalization.csv`; notebooks 04–06 | Neural inference resamples with soxr HQ, averages channels, then pads/truncates to 20,000 samples. No uploaded audio is persisted. Training features remain notebook-defined. |
+| Feature selection / PCA | `feature_selection/{selected_features,final_feature_selection_ranking}.csv`, `analysis/feature_statistics.csv`, `pca_clustering/{pca_explained_variance,kmeans_cluster_analysis}.csv`; notebooks 07–08 | K-means outputs are descriptive unsupervised results, not disease labels. |
+| Traditional ML | `models/traditional_ml/{logistic_regression,svm,random_forest,scaler,label_encoder}.joblib`, `selected_features.json`, `classical_ml_metadata.json`; Notebook 05 and 09 | Uses 33 selected features in saved order. Logistic Regression and SVM are scaled; Random Forest is unscaled as recorded in metadata. The 33 extraction features match Notebook 05 (including db4 wavelet entropy). |
+| Lightweight Mel CNN | `models/deep_learning/lightweight_mel_cnn/{best_lightweight_mel_cnn.pt,logmel_train_normalization.csv,cnn_training_config.json}`; notebook 11 | Strict state-dict load, 8-class order verified against checkpoint; 4 kHz, 5 seconds, 512 FFT, hop 128, 64 Mel bands, power 2, power-to-dB ref max, saved global normalization. Regression smoke matched LRTI, max score 0.302630 on `101/1b1_Al_001.wav`. |
+| Multi-Feature CNN | `models/deep_learning/multifeature_cnn/{best_multifeature_cnn.pt,multifeature_train_normalization.csv,multifeature_cnn_training_config.json}`; notebook 12 | Log-Mel, MFCC-13, Chroma-12; shared feature dimensions and saved feature-specific train means/stds; strict load. |
+| Regularized Multi-Feature CNN (12B) | `models/deep_learning/regularized_multifeature_cnn/{best_regularized_multifeature_cnn.pt,training_config.json}` plus `models/deep_learning/multifeature_cnn/multifeature_train_normalization.csv`; notebook 12B | The package-level registry has no normalization path, but Notebook 12 computes training-only statistics in cells 23–26 and the 12B section uses the preceding data pipeline/statistics. State dict strictly loads; reused normalization is explicitly disclosed. |
+| CNN-LSTM | `models/deep_learning/cnn_lstm/{best_cnn_lstm.pt,logmel_train_normalization.csv,cnn_lstm_training_config.json}`; notebook 13 | Exact CNN/LSTM dimensions, 4 kHz log-Mel, global saved stats and strict load. |
+| Model evaluation | `reports/final_artifacts/cycle_level_model_comparison.csv`, `data/processed/classical_ml/*`, `data/processed/deep_learning/*`; notebooks 09–13,16–18 | Source files retained. The report explicitly labels cross-model split equivalence unverified; dashboard does not infer a winner. |
+| Patient-level analysis | `data/processed/deep_learning/patient_level_prediction/*`, `reports/final_artifacts/patient_level_model_comparison.csv`; notebook 14 | Majority vote and mean-probability tables shown separately from cycle metrics. |
+| XAI | `data/processed/deep_learning/xai/{multi_class_xai_summary.csv,gradcam_example_metadata.json,gradcam*.png}`; notebook 15 | Grad-CAM saved examples are precomputed; no uploaded-audio Grad-CAM endpoint is claimed. |
+| Reports / system validation | `reports/final_artifacts/{final_results_report.md,model_registry.csv,model_package_manifest.csv,checkpoint_integrity_check.csv,prediction_validation.csv,final_project_validation.csv}` and `reports/validation/*`; notebooks 17–18 | Download links are restricted to named files in the report directory. File presence and inference readiness are distinct from scientific validity. |
+
+## Audit discrepancies and limitations
+
+- Several registry entries point to `data/processed/deep_learning/...` while deployable checkpoints are in `models/deep_learning/...`; app runtime uses the latter. The results tables under `data/processed` remain the source for historical evaluation.
+- Traditional estimator artifacts are verified present; metadata specifies classifier-specific scaling. Checkpoint hashes/versions are recorded in project manifests; the app does not rewrite those artifacts.
+- The model-package registry marks 12B normalization absent. Notebook 12's normalization cells produce one saved training normalization table consumed by the 12B section; the app uses that saved `multifeature_train_normalization.csv`, never uploaded-sample statistics.
+- Notebook 15's persisted Grad-CAM images/metadata are available. On-upload explanations and explanations for traditional models are not implemented.
+- Legacy reports mention package-copy destinations that may not exist. Current model package paths were verified under `models/` as listed above.
+- `predict_audio.py` was an untracked user file at audit start. It is retained as a CLI compatibility wrapper around the migrated backend inference service.

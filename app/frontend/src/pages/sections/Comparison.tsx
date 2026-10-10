@@ -1,0 +1,4 @@
+import { ShieldAlert } from 'lucide-react';
+import { Card, MetricTable, Table, titleCase } from '../../components/shared';
+
+export default function Comparison({data}:any){return <><Card title="Cycle-level evaluation" aside={<span className="card-note">Saved metrics · test split comparability not confirmed</span>}><MetricTable rows={data.cycle_level||[]}/></Card><Card title="Per-disease classical ML results"><Table rows={data.classical||[]}/></Card><div className="grid two">{Object.entries(data.confusion||{}).map(([name,rows]:any)=><Card key={name} title={`${titleCase(name)} · saved confusion matrix`}><Table rows={rows}/></Card>)}</div><p className="callout"><ShieldAlert size={17}/> Results use different evaluation protocols. Read the split_comparability field before drawing model rankings. Probability-like scores are not established as calibrated confidence.</p></>}
