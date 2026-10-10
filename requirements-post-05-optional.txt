@@ -1,5 +1,0 @@
-# Optional dependencies for experiments after Notebook 05.
-# The classical ML / feature-analysis pipeline uses the packages already in requirements.txt.
-torch  # Required only for CNN, multi-feature CNN, CNN-LSTM experiments
-PyWavelets  # Optional wavelet feature extraction
-shap  # Optional SHAP explanations for tree models

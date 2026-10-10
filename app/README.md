@@ -2,25 +2,17 @@
 
 A locally run academic dashboard built around existing lung-sound research results and saved models. It does not retrain models and does not modify notebooks 01–18, datasets, or checkpoints. Model predictions are not diagnoses.
 
-## Start on macOS
+## Start on macOS with Docker
 
-From the repository root:
+From the repository root, with Docker Desktop running:
 
 ```bash
-# Terminal 1: existing project environment
-source .venv/bin/activate
-python -m pip install -r app/backend/requirements.txt
-uvicorn app.backend.main:app --reload --host 127.0.0.1 --port 8000
-
-# Terminal 2
-cd app/frontend
-npm install
-npm run dev
+docker compose up --build
 ```
 
-Open <http://localhost:5173>. Backend API and OpenAPI docs: <http://localhost:8000> and <http://localhost:8000/docs>.
+The backend API and OpenAPI docs are at <http://localhost:8000> and <http://localhost:8000/docs>. The Vite frontend can still run separately from `app/frontend` with `npm install` and `npm run dev`; its `/api` requests are proxied to the container.
 
-Dependency installation is local to the project venv for Python. The frontend uses the package manifest in `app/frontend`. No package installation is run automatically by the app.
+Docker builds the backend image from the checked-in model files and processed artifacts. It excludes raw data, notebooks, the local Python environment, and frontend dependencies.
 
 ## Validation
 
@@ -38,7 +30,7 @@ See `docs/artifact_mapping.md`, `docs/architecture.md`, and `docs/api.md` for ar
 
 ## Troubleshooting
 
-- If API reports a missing module, activate `.venv` and install `app/backend/requirements.txt`.
+- If API reports a missing module, rebuild the image with `docker compose build --no-cache`.
 - If a model is unavailable, inspect its exact artifact-specific reason in **System status** and compare with `docs/artifact_mapping.md`.
 - Upload non-silent WAV files under 20 MiB and 120 seconds by default. Set `MAX_UPLOAD_BYTES` or `MAX_AUDIO_DURATION_SECONDS` in the backend environment to adjust limits. Input is decoded locally, downmixed, resampled where needed, and not persisted. Frontend dependency versions are pinned in `app/frontend/package.json` and its lockfile.
-- The Vite development server proxies `/api` to `127.0.0.1:8000`, so localhost and private-LAN browser origins work without cross-origin fetches. For a separately hosted API, set `VITE_API_URL` in `app/frontend/.env.local`; backend limit examples are in `app/backend/.env.example`.
+- The Vite development server proxies `/api` to `127.0.0.1:8000`, so localhost and private-LAN browser origins work without cross-origin fetches. For the public Cloud Run API, set `VITE_API_URL` in Vercel and `FRONTEND_ORIGINS` on Cloud Run; see `docs/cloud-run-deployment.md`.
