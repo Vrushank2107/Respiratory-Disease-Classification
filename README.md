@@ -1,246 +1,126 @@
 # Respiratory Disease Classification
 
-This project classifies respiratory diseases from lung-sound audio recordings sourced from the [ICBHI 2017 Challenge](https://bhichallenge.med.auth.gr/) dataset. It covers the full ML pipeline — data cleaning, exploratory analysis, audio preprocessing, feature engineering, feature selection, classical ML, deep learning (CNN / multi-feature CNN / CNN-LSTM), patient-level aggregation, and explainability (Grad-CAM) — plus a locally-run research dashboard for exploring saved results and running inference on new audio.
+An academic research project for analyzing respiratory sounds from the ICBHI 2017 lung-sound dataset. It includes the data-preparation and machine-learning notebooks, saved model artifacts and evaluation results, and a web dashboard for exploring the research outputs and predicting from uploaded WAV recordings.
 
-## Repository Structure
+> **Research use only.** Model scores are experimental, are not established as calibrated confidence, and must not be used for medical diagnosis or treatment decisions.
+
+## Live application
+
+- **Dashboard:** [respiratory-disease-classification-seven.vercel.app](https://respiratory-disease-classification-seven.vercel.app/)
+- **FastAPI backend:** [respiratory-disease-classification.onrender.com](https://respiratory-disease-classification.onrender.com/)
+- **API health:** [/api/health](https://respiratory-disease-classification.onrender.com/api/health)
+- **API documentation:** [/docs](https://respiratory-disease-classification.onrender.com/docs)
+
+The dashboard is hosted on Vercel and uses the separately hosted Render API. The API root may return `404`; use `/api/health`, `/api/models`, or `/docs` to check it. Render free services have resource and availability limits, so inference performance may vary.
+
+## What is included
+
+- **Research workflow:** 18 Jupyter notebooks cover dataset understanding, cleaning, EDA, audio processing, feature work, classical and deep learning, patient-level aggregation, explainability, and validation.
+- **Saved models:** Logistic Regression, SVM, Random Forest, Lightweight Mel CNN, Multi-Feature CNN, Regularized Multi-Feature CNN (12B), and CNN-LSTM.
+- **Dashboard:** dataset and EDA views, audio pipeline and feature summaries, model comparison, patient analysis, saved explainability examples, reports, system status, and WAV prediction.
+- **API:** FastAPI reads the saved research artifacts and runs inference; prediction uploads are processed in memory and are not retained.
+
+The dashboard reports the saved dataset summary as **126 patients, 34 recordings, and 6,898 respiratory cycles**. Class counts and evaluation outputs are available in the app and under `data/processed/` and `reports/final_artifacts/`.
+
+## Repository layout
 
 ```text
-Respiratory-Disease-Classification/
-├── .gitignore
-├── .gitattributes
-├── README.md                               
-├── requirements.txt                     
-├── vercel.json                            
-│
+.
+├── app/
+│   ├── backend/              # FastAPI API and inference services
+│   ├── frontend/             # React, TypeScript, and Vite dashboard
+│   ├── docs/                 # API, architecture, artifacts, and deployment notes
+│   └── artifacts/            # Dashboard artifact documentation
 ├── data/
-│   ├── raw/                               # Original ICBHI dataset (git-ignored)
-│   │   └── ICBHI/
-│   ├── interim/                           # Intermediate parsed / validated CSVs
-│   │   ├── audio_info.csv
-│   │   ├── cycles.csv
-│   │   ├── cycles_validation.csv
-│   │   ├── filename_validation.csv
-│   │   ├── patients.csv
-│   │   └── recordings.csv
-│   └── processed/                         # Final cleaned data, features, and model outputs
-│       ├── audio_info_clean.csv
-│       ├── cleaning_summary.csv
-│       ├── cycles_clean.csv
-│       ├── patients_clean.csv
-│       ├── processed_cycles.csv
-│       ├── processing_errors.csv
-│       ├── recordings_clean.csv
-│       ├── analysis/                      # EDA outputs
-│       ├── audio/                         # Preprocessed audio cycles (git-ignored)
-│       ├── classical_ml/                  # Classical ML comparison CSVs
-│       ├── deep_learning/                 # DL metrics, predictions & checkpoints
-│       │   ├── cnn_baseline/
-│       │   ├── cnn_lstm/
-│       │   ├── multifeature_cnn/
-│       │   ├── multifeature_cnn_12b/
-│       │   └── patient_level_prediction/
-│       ├── eda/
-│       ├── features/                      # Extracted feature matrices
-│       ├── feature_selection/             # Feature importance & selection outputs
-│       └── pca_clustering/                # PCA / clustering results
-│
+│   ├── interim/              # Parsed intermediate tables
+│   └── processed/            # Cleaned data, features, predictions, and metrics
 ├── models/
-│   ├── deep_learning/                     # Saved PyTorch checkpoints (.pt)
-│   │   ├── cnn_lstm/
-│   │   ├── lightweight_mel_cnn/
-│   │   ├── multifeature_cnn/
-│   │   └── regularized_multifeature_cnn/
-│   └── traditional_ml/                   # Saved scikit-learn estimators (.joblib)
-│       ├── classical_ml_metadata.json
-│       ├── label_encoder.joblib
-│       ├── logistic_regression.joblib
-│       ├── random_forest.joblib
-│       ├── scaler.joblib
-│       ├── selected_features.json
-│       └── svm.joblib
-│
-├── notebooks/                             # End-to-end experiment notebooks
-│   ├── 01_dataset_understanding.ipynb
-│   ├── 02_data_cleaning.ipynb
-│   ├── 03_eda.ipynb
-│   ├── 04_audio_preprocessing.ipynb
-│   ├── 05_feature_engineering.ipynb
-│   ├── 06_feature_analysis.ipynb
-│   ├── 07_feature_selection.ipynb
-│   ├── 08_pca_and_clustering.ipynb
-│   ├── 09_classical_ml.ipynb
-│   ├── 10_deep_learning_data_preparation.ipynb
-│   ├── 11_cnn_baseline.ipynb
-│   ├── 12_multifeature_cnn.ipynb
-│   ├── 13_cnn_lstm_optional.ipynb
-│   ├── 14_patient_level_prediction.ipynb
-│   ├── 15_xai.ipynb
-│   ├── 16_final_model_comparison.ipynb
-│   ├── 17_Final_Artifact_Generation_and_Validation.ipynb
-│   └── 18_model_validation.ipynb
-│
+│   ├── deep_learning/        # PyTorch checkpoints and normalization data
+│   └── traditional_ml/       # scikit-learn estimators and metadata
+├── notebooks/                # Ordered research and validation notebooks
 ├── reports/
-│   ├── artifact_inventory.csv             # Full inventory of generated artifacts
-│   ├── experiment_manifest.json           # Experiment metadata & provenance
-│   ├── final_artifacts/                   # Consolidated comparison tables & validation
-│   │   ├── cycle_level_model_comparison.csv
-│   │   ├── patient_level_model_comparison.csv
-│   │   ├── final_results_report.md
-│   │   └── … (24 validation / registry files)
-│   └── validation/
-│       ├── model_validation_summary.csv
-│       └── multifeature_performance_metrics.csv
-│
-├── tests/
-│   └── test_final_artifacts.py            # Pytest suite for artifact integrity
-│
-├── app/                                   # Research dashboard (FastAPI + Vite/React/TS)
-│   ├── README.md
-│   ├── artifacts/
-│   ├── docs/
-│   │   ├── api.md
-│   │   ├── architecture.md
-│   │   ├── artifact_mapping.md
-│   │   └── vercel-deployment.md
-│   ├── backend/                           # FastAPI inference & artifact API
-│   │   ├── main.py
-│   │   ├── schemas.py
-│   │   ├── requirements.txt               # Backend-only dependencies
-│   │   ├── services/
-│   │   │   ├── audio_processing.py
-│   │   │   ├── classical.py
-│   │   │   ├── lightweight_cnn.py
-│   │   │   └── models.py
-│   │   └── tests/
-│   └── frontend/                          # Vite + React + TypeScript UI
-│       ├── package.json
-│       ├── vite.config.ts
-│       ├── tsconfig.json
-│       └── src/
-│
-└── .venv/                                 # Local Python virtual environment
+│   └── final_artifacts/      # Final comparisons, registries, and validation reports
+├── Dockerfile                # CPU-only backend container for Render / local Docker
+├── docker-compose.yml        # Local backend service
+├── requirements.txt          # Full research/notebook environment
+└── app/backend/requirements.txt # Backend dependencies
 ```
 
-## Pipeline Overview
+The raw ICBHI audio dataset and generated audio-cycle files are excluded from Git because of their size. The saved models, processed tables, and reports used by the dashboard are included. Obtain the raw data from the [ICBHI 2017 Challenge](https://bhichallenge.med.auth.gr/) if you want to rerun the original data-preparation workflow.
 
-| Stage | Notebooks | Description |
-|-------|-----------|-------------|
-| **Data Ingestion** | 01 | Parse ICBHI filenames, patient demographics, and respiratory cycle annotations |
-| **Data Cleaning** | 02 | Validate and clean patient, recording, and cycle-level data |
-| **EDA** | 03 | Class distributions, recording durations, disease breakdowns |
-| **Audio Preprocessing** | 04 | Waveform segmentation into respiratory cycles, resampling |
-| **Feature Engineering** | 05 | Time-domain, frequency-domain, and spectral features per cycle |
-| **Feature Analysis** | 06 | Correlation analysis, distribution checks, feature statistics |
-| **Feature Selection** | 07 | Mutual information, importance ranking, and final feature set |
-| **PCA & Clustering** | 08 | Dimensionality reduction and unsupervised cluster analysis |
-| **Classical ML** | 09 | Random Forest, SVM, and Logistic Regression training and evaluation |
-| **DL Data Prep** | 10 | Spectrogram generation, train/val/test splitting for neural models |
-| **CNN Baseline** | 11 | Lightweight Mel-spectrogram CNN |
-| **Multi-feature CNN** | 12 | CNN with Log-Mel + MFCC + Chroma input channels |
-| **CNN-LSTM** | 13 | Temporal CNN-LSTM architecture (optional) |
-| **Patient-Level** | 14 | Majority-vote and mean-probability patient-level aggregation |
-| **Explainability** | 15 | Grad-CAM visualizations for CNN models |
-| **Comparison** | 16 | Consolidated cycle-level model comparison across all architectures |
-| **Artifact Generation** | 17 | Final artifact packaging, inventory, and validation |
-| **Model Validation** | 18 | End-to-end checkpoint integrity and metric reproduction checks |
+## Run the dashboard locally
 
-## Models
+### Backend with Docker
 
-### Classical ML (scikit-learn)
-- **Random Forest** — Accuracy: 87.4%, Balanced Accuracy: 42.6%, Macro F1: 28.0%
-- **SVM** — Accuracy: 80.7%, Balanced Accuracy: 45.8%, Macro F1: 26.6%
-- **Logistic Regression** — Accuracy: 64.2%, Balanced Accuracy: 41.2%, Macro F1: 21.8%
-
-### Deep Learning (PyTorch)
-- **Lightweight Mel CNN** — Accuracy: 71.7%, Balanced Accuracy: 31.0%, Macro F1: 21.3%
-- **Multi-Feature CNN (12A)** — Accuracy: 85.5%, Balanced Accuracy: 16.6%, Macro F1: 15.4%
-- **Regularized Multi-Feature CNN (12B)** — Accuracy: 85.7%, Balanced Accuracy: 16.7%, Macro F1: 15.4%
-- **CNN-LSTM** — Accuracy: 81.4%, Balanced Accuracy: 22.6%, Macro F1: 14.6%
-
-### Patient-Level Aggregation
-- **Majority Vote / Mean Probability** — Accuracy: 56.0%, Balanced Accuracy: 33.3%
-
-> **Note:** High accuracy with low balanced accuracy reflects significant class imbalance (COPD dominates the dataset). See `reports/final_artifacts/final_results_report.md` for full details.
-
-## Getting Started
-
-### Prerequisites
-
-- Python 3.14+ (tested on 3.14.7)
-- Node.js 18+ (for the dashboard frontend)
-- macOS / Linux
-
-### Installation
+Install and start Docker Desktop, then run this from the repository root:
 
 ```bash
-# Clone the repository
-git clone https://github.com/<your-username>/Respiratory-Disease-Classification.git
-cd Respiratory-Disease-Classification
-
-# Create and activate a virtual environment
-python -m venv .venv
-source .venv/bin/activate
-
-# Install all Python dependencies
-pip install -r requirements.txt
+docker compose up --build
 ```
 
-### Running the Notebooks
+This starts the API on `http://localhost:8000`. API docs are at `http://localhost:8000/docs`. Stop it with `Ctrl+C` or run `docker compose down` in another terminal.
+
+### Frontend
+
+In a second terminal:
 
 ```bash
-source .venv/bin/activate
-jupyter lab
-# Open notebooks in notebooks/ and run them in order (01 → 18)
-```
-
-### Running the Research Dashboard
-
-The dashboard provides a web UI for exploring saved results and running inference on uploaded `.wav` audio files. It does **not** retrain models.
-
-```bash
-# Terminal 1 — Backend
-source .venv/bin/activate
-pip install -r app/backend/requirements.txt
-uvicorn app.backend.main:app --reload --host 127.0.0.1 --port 8000
-
-# Terminal 2 — Frontend
 cd app/frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Open http://localhost:5173 for the UI, http://localhost:8000/docs for the API docs.
+Open `http://localhost:5173`. During local development, Vite proxies `/api` requests to the local backend. Production builds use the Render API URL in `app/frontend/.env.production`; a `VITE_API_URL` configured in Vercel overrides that default.
 
-### Running Tests
+### Run the backend directly with Python (optional)
+
+From the repository root, create a virtual environment and install the backend dependencies:
 
 ```bash
+python3 -m venv .venv
 source .venv/bin/activate
-python -m pytest tests/test_final_artifacts.py       # Artifact integrity
-python -m pytest app/backend/tests                   # Backend API tests
-cd app/frontend && npm run build                     # Frontend type-check & build
+python -m pip install -r app/backend/requirements.txt
+uvicorn app.backend.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-## Key Technologies
+Then start the frontend using the commands above.
 
-| Category | Libraries |
-|----------|-----------|
-| **Data & Analysis** | pandas, numpy, scipy, openpyxl, imbalanced-learn |
-| **Audio Processing** | librosa, soundfile, soxr, PyWavelets |
-| **Visualization** | matplotlib, seaborn, mlxtend |
-| **Classical ML** | scikit-learn, joblib |
-| **Deep Learning** | PyTorch (torch), numba |
-| **Notebooks** | JupyterLab, ipywidgets |
-| **Backend API** | FastAPI, uvicorn, pydantic, python-multipart |
-| **Frontend** | React 19, TypeScript, Vite, Recharts, Lucide React |
-| **Testing** | pytest, httpx |
+## Run the research notebooks
+
+The root `requirements.txt` contains the broader research environment, including notebook and analysis dependencies:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+jupyter lab
+```
+
+Open the notebooks in `notebooks/` and follow their numbered order. Re-running the original data-preparation and training stages requires the raw ICBHI data. The dashboard itself uses the checked-in saved models and results; it does not retrain models.
+
+## Models and interpretation
+
+Traditional machine-learning inference uses the saved scaler, label encoder, selected-feature list, and estimators. Neural inference uses the saved PyTorch checkpoints and training normalizations. The API lists a model as available only when its required artifacts load successfully.
+
+The saved evaluation results are subject to class imbalance and use protocols that may differ between experiments. Check the split-comparability notes in `reports/final_artifacts/final_results_report.md` before comparing model scores. Probability-like outputs are not calibrated confidence estimates.
 
 ## Deployment
 
-The React frontend can be hosted on Vercel, with the FastAPI backend deployed separately to Google Cloud Run from the root `Dockerfile`. See `app/docs/cloud-run-deployment.md` for deployment steps. For local backend development, run `docker compose up --build` from the repository root.
+- **Vercel:** deploy the Vite frontend with the project root set to `app/frontend`. Its production API URL is in `.env.production`.
+- **Render:** deploy the FastAPI backend as a Docker web service using the repository root `Dockerfile`; leave Root Directory blank. Set `FRONTEND_ORIGINS` if additional frontend origins need access.
+- **Local container:** `docker compose up --build` runs the backend API.
 
-## Project Notes
+See [Vercel deployment notes](app/docs/vercel-deployment.md), [Cloud Run alternative](app/docs/cloud-run-deployment.md), [API reference](app/docs/api.md), and [architecture](app/docs/architecture.md).
 
-- The ICBHI raw dataset (`data/raw/ICBHI/`) is git-ignored; obtain it from the [ICBHI 2017 Challenge](https://bhichallenge.med.auth.gr/).
-- Processed audio cycles (`data/processed/audio/cycles/`) are also git-ignored due to size.
-- Notebook source is treated as read-only by the dashboard. Uploaded audio is processed locally and not persisted.
-- Model predictions are research outputs, **not** clinical diagnoses.
+## API routes
+
+The API provides health and model status, overview and research summaries, saved evaluations and report downloads, audio preview, and prediction for one or multiple models. See the live [OpenAPI documentation](https://respiratory-disease-classification.onrender.com/docs) or [API reference](app/docs/api.md) for routes and request formats.
+
+WAV uploads default to a maximum of 20 MiB and 120 seconds. The backend accepts `MAX_UPLOAD_BYTES` and `MAX_AUDIO_DURATION_SECONDS` environment variables to change those limits.
+
+## Technology
+
+- **Research:** Python, Jupyter, pandas, NumPy, SciPy, scikit-learn, PyTorch, librosa, PyWavelets
+- **Backend:** FastAPI, Uvicorn, soundfile, soxr
+- **Frontend:** React, TypeScript, Vite, Recharts, Lucide
+- **Deployment:** Docker, Render, Vercel

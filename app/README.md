@@ -1,36 +1,77 @@
-# Respiratory Sound Research Platform
+# RespiraLab Research Dashboard
 
-A locally run academic dashboard built around existing lung-sound research results and saved models. It does not retrain models and does not modify notebooks 01–18, datasets, or checkpoints. Model predictions are not diagnoses.
+The web application provides a research interface to saved respiratory-sound results and runs inference on uploaded WAV recordings. It consists of a React/Vite frontend and a FastAPI backend. The app does not retrain the research models, and predictions are not medical diagnoses.
 
-## Start on macOS with Docker
+## Live deployment
 
-From the repository root, with Docker Desktop running:
+- **Frontend:** [RespiraLab on Vercel](https://respiratory-disease-classification-seven.vercel.app/)
+- **Backend API:** [Render service](https://respiratory-disease-classification.onrender.com/)
+- **Health check:** [API health](https://respiratory-disease-classification.onrender.com/api/health)
+- **API docs:** [OpenAPI / Swagger UI](https://respiratory-disease-classification.onrender.com/docs)
+
+The backend URL serves the API, so its `/` route may return `404`. Use `/api/health` to check availability. Render free services have resource and availability limits, so a service may be slow after inactivity or unable to handle some workloads.
+
+## Run locally
+
+### Start the API
+
+With Docker Desktop running, start the backend from the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-The backend API and OpenAPI docs are at <http://localhost:8000> and <http://localhost:8000/docs>. The Vite frontend can still run separately from `app/frontend` with `npm install` and `npm run dev`; its `/api` requests are proxied to the container.
+The API is at `http://localhost:8000`; the interactive API docs are at `http://localhost:8000/docs`.
 
-Docker builds the backend image from the checked-in model files and processed artifacts. It excludes raw data, notebooks, the local Python environment, and frontend dependencies.
+### Start the frontend
 
-## Validation
+In another terminal:
 
 ```bash
-source .venv/bin/activate
-python -m pytest app/backend/tests tests/test_final_artifacts.py
-cd app/frontend && npm run build
+cd app/frontend
+npm ci
+npm run dev
 ```
 
-## Implemented research methodology
+Open `http://localhost:5173`. Vite proxies `/api` requests to the local API. Stop the backend with `Ctrl+C` or `docker compose down`.
 
-Neural models use saved architectures/checkpoints and training normalizations. Log-Mel settings match Notebook 11; multi-feature settings match Notebook 12 (Log-Mel, MFCC, Chroma); CNN-LSTM follows Notebook 13. Traditional models use the saved 33-feature list and classifier-specific scaler usage in metadata. Historical metrics are loaded from saved outputs, and evaluation units are kept separate. Notebook 15 Grad-CAM output is represented by saved examples only.
+To run the API directly with Python instead of Docker, use the repository root as the working directory:
 
-See `docs/artifact_mapping.md`, `docs/architecture.md`, and `docs/api.md` for artifact provenance, caveats, and API details.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r app/backend/requirements.txt
+uvicorn app.backend.main:app --reload --host 127.0.0.1 --port 8000
+```
 
-## Troubleshooting
+## Deployment
 
-- If API reports a missing module, rebuild the image with `docker compose build --no-cache`.
-- If a model is unavailable, inspect its exact artifact-specific reason in **System status** and compare with `docs/artifact_mapping.md`.
-- Upload non-silent WAV files under 20 MiB and 120 seconds by default. Set `MAX_UPLOAD_BYTES` or `MAX_AUDIO_DURATION_SECONDS` in the backend environment to adjust limits. Input is decoded locally, downmixed, resampled where needed, and not persisted. Frontend dependency versions are pinned in `app/frontend/package.json` and its lockfile.
-- The Vite development server proxies `/api` to `127.0.0.1:8000`, so localhost and private-LAN browser origins work without cross-origin fetches. For the public Cloud Run API, set `VITE_API_URL` in Vercel and `FRONTEND_ORIGINS` on Cloud Run; see `docs/cloud-run-deployment.md`.
+The frontend is deployed on Vercel from `app/frontend`; the production API origin is configured in `app/frontend/.env.production`. The FastAPI backend is deployed on Render as a Docker web service from the repository root `Dockerfile`.
+
+For another deployment, set `VITE_API_URL` to the backend origin in the frontend build environment and allow that exact frontend origin through the backend's `FRONTEND_ORIGINS` setting. See [Vercel deployment notes](docs/vercel-deployment.md) and the [Cloud Run alternative](docs/cloud-run-deployment.md).
+
+## What the app shows
+
+- Overview and dataset/EDA summaries
+- Audio-processing and selected-feature summaries
+- Saved cycle-level model comparison and confusion matrices
+- Patient-level aggregation metrics and confusion matrices
+- Saved explainability images and report artifacts
+- Model and artifact readiness status
+- WAV prediction with per-model classes, scores, and inference time
+
+The backend loads saved estimators, neural checkpoints, normalizations, and research artifacts from the repository. Raw source audio and preprocessed cycle audio are not required for inference. Uploaded recordings are validated, decoded, downmixed as needed, resampled, and processed temporarily; the API does not retain uploads.
+
+Uploads must be WAV files. The default limits are 20 MiB and 120 seconds; configure `MAX_UPLOAD_BYTES` or `MAX_AUDIO_DURATION_SECONDS` to change them.
+
+## Development and references
+
+```bash
+# Frontend production build and TypeScript check
+cd app/frontend && npm run build
+
+# Backend and artifact tests
+python -m pytest app/backend/tests tests/test_final_artifacts.py
+```
+
+See [API reference](docs/api.md), [architecture](docs/architecture.md), and [artifact mapping](docs/artifact_mapping.md) for implementation and provenance details.

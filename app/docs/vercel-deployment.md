@@ -1,62 +1,25 @@
-# Deploy the frontend on Vercel
+# Vercel frontend deployment
 
-Deploy only the static Vite frontend to Vercel. The FastAPI backend must run
-on a separate Python host because Vercel reports that the backend deployment
-bundle is about 5 GB, above the 2 GB limit available to this project.
+The production React/Vite frontend is hosted on Vercel. The FastAPI backend is a separate Docker web service on Render.
 
-## Vercel frontend
+## Current project settings
 
-1. Import the GitHub repository into Vercel.
-2. Set **Root Directory** to `app/frontend` and choose **Vite** as the preset.
-3. The included `vercel.json` builds with `npm run build` and serves `dist`.
-4. Production builds use the Render API origin in `app/frontend/.env.production`.
-   Override `VITE_API_URL` in Vercel Project Settings only if you deploy the API
-   elsewhere. Set the backend origin without a trailing slash or `/api`.
-5. Redeploy after changing the variable; Vite embeds it at build time.
+- **Git repository:** `Vrushank2107/Respiratory-Disease-Classification`
+- **Branch:** `master`
+- **Root Directory:** `app/frontend`
+- **Framework preset:** Vite
+- **Build command:** `npm run build`
+- **Output directory:** `dist`
+- **API origin:** `https://respiratory-disease-classification.onrender.com`
 
-The browser sends API requests to `VITE_API_URL + /api/...`. For local
-development, leave `VITE_API_URL` unset to use the Vite proxy to
-`http://127.0.0.1:8000`.
+The production API origin is stored in `app/frontend/.env.production` as `VITE_API_URL`. Vite embeds it when it builds the frontend. If `VITE_API_URL` is also set in Vercel Project Settings, that environment variable takes precedence; keep it equal to the Render API origin or remove it to use the checked-in default.
 
-## Separate FastAPI backend
+For local development, Vite uses its `/api` proxy to the API at `http://127.0.0.1:8000`; it does not use the production environment file in dev mode.
 
-Choose a Python/container host whose deployment artifact and memory limits can
-accommodate the backend's actual package. Configure its build from the
-repository and install runtime dependencies with:
+## Backend and CORS
 
-```sh
-pip install -r app/backend/requirements.txt
-```
+Deploy the backend separately from the repository root using its `Dockerfile`; see the [Cloud Run alternative notes](cloud-run-deployment.md) for another container host. The backend includes the production Vercel origin in its default CORS allowlist. To allow other frontend origins, set `FRONTEND_ORIGINS` on the backend to a comma-separated list of exact origins, without trailing slashes.
 
-Run the API from the repository root so the Python package imports and
-repository-relative model/data paths resolve:
+## Why the backend is not deployed as a Vercel function
 
-```sh
-uvicorn app.backend.main:app --host 0.0.0.0 --port "$PORT"
-```
-
-The backend needs the model checkpoints and the processed data/report files
-under `models/`, `data/processed/`, and `reports/final_artifacts/`. The raw
-source audio is not needed by the inference API. Confirm the hosting plan's
-artifact-size, RAM, disk, execution-time, and upload limits before deploying.
-
-Set backend environment variables:
-
-```text
-FRONTEND_ORIGINS=https://your-project.vercel.app
-MAX_UPLOAD_BYTES=20971520
-MAX_AUDIO_DURATION_SECONDS=120
-```
-
-Add exact Vercel Preview origins to `FRONTEND_ORIGINS` if those deployments
-should call the API. Multiple allowed origins are comma-separated. No wildcard
-is needed.
-
-## Check the deployment
-
-1. Open `https://<backend-host>/api/health` and confirm it returns healthy.
-2. Open `/api/models` and confirm model artifacts load successfully.
-3. Confirm the Vercel site shows the API as connected.
-4. Upload a representative WAV and run inference; the backend accepts WAVs up
-   to the configured upload and duration limits.
-5. Check backend logs if model loading or artifact paths fail.
+The attempted Python function build reported a **5,720.12 MB bundle** against a **500 MB function-size limit** for that deployment. The oversized bundle came from the backend's Python ML/audio dependencies. The project therefore keeps the frontend on Vercel and runs the API on Render as a Docker service.
