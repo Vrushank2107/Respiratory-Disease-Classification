@@ -52,8 +52,25 @@ def eda(): return {'disease_distribution':csv('data/processed/eda/disease_distri
 def features(): return {'selected_features':csv('data/processed/feature_selection/selected_features.csv'),'ranking':csv('data/processed/feature_selection/final_feature_selection_ranking.csv'),'statistics':csv('data/processed/analysis/feature_statistics.csv'),'variance':csv('data/processed/analysis/feature_variance.csv'),'pca':csv('data/processed/pca_clustering/pca_explained_variance.csv'),'clusters':csv('data/processed/pca_clustering/kmeans_cluster_analysis.csv')}
 @app.get('/api/clustering/summary')
 def clustering(): return {'pca':csv('data/processed/pca_clustering/pca_explained_variance.csv'),'clusters':csv('data/processed/pca_clustering/kmeans_cluster_analysis.csv')}
+def cnn_baseline_confusion():
+    saved_matrix = ROOT/'data/processed/deep_learning/cnn_baseline/cnn_baseline_confusion_matrix.csv'
+    if saved_matrix.is_file():
+        return csv('data/processed/deep_learning/cnn_baseline/cnn_baseline_confusion_matrix.csv')
+
+    predictions = csv('data/processed/deep_learning/cnn_baseline/cnn_test_predictions.csv')
+    if not predictions:
+        return []
+
+    matrix = {label: {prediction: 0 for prediction in CLASS_NAMES} for label in CLASS_NAMES}
+    for row in predictions:
+        actual = row.get('true_disease')
+        predicted = row.get('predicted_disease')
+        if actual in matrix and predicted in matrix[actual]:
+            matrix[actual][predicted] += 1
+    return [{'true_class': label, **matrix[label]} for label in CLASS_NAMES]
+
 @app.get('/api/evaluation/models')
-def evaluations(): return {'cycle_level':csv('reports/final_artifacts/cycle_level_model_comparison.csv'),'classical':csv('data/processed/classical_ml/classical_ml_per_disease_results.csv'),'confusion':{k:csv(f'data/processed/deep_learning/{k}/{f}') for k,f in [('cnn_baseline','cnn_baseline_confusion_matrix.csv'),('cnn_lstm','cnn_lstm_confusion_matrix.csv'),('multifeature_cnn','multifeature_cnn_confusion_matrix.csv'),('multifeature_cnn_12b','confusion_matrix.csv')]}}
+def evaluations(): return {'cycle_level':csv('reports/final_artifacts/cycle_level_model_comparison.csv'),'classical':csv('data/processed/classical_ml/classical_ml_per_disease_results.csv'),'confusion':{'cnn_baseline':cnn_baseline_confusion(),**{k:csv(f'data/processed/deep_learning/{k}/{f}') for k,f in [('cnn_lstm','cnn_lstm_confusion_matrix.csv'),('multifeature_cnn','multifeature_cnn_confusion_matrix.csv'),('multifeature_cnn_12b','confusion_matrix.csv')]}}}
 @app.get('/api/evaluation/cycle-level')
 def cycle_eval(): return csv('reports/final_artifacts/cycle_level_model_comparison.csv')
 @app.get('/api/evaluation/patient-level')
