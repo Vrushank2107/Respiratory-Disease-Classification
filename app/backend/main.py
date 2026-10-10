@@ -13,7 +13,7 @@ from .services.classical import artifacts, extract_all_features, predict_classic
 from .schemas import PredictionResponse
 
 app=FastAPI(title='Respiratory Sound Research API',version='1.0.0',description='Local academic research interface; predictions are not diagnoses.')
-configured_origins=[origin.strip().rstrip('/') for origin in os.getenv('FRONTEND_ORIGINS','').split(',') if origin.strip()]
+configured_origins=['https://respiratory-disease-classification-seven.vercel.app',*[origin.strip().rstrip('/') for origin in os.getenv('FRONTEND_ORIGINS','').split(',') if origin.strip()]]
 app.add_middleware(CORSMiddleware,allow_origins=['http://localhost:5173','http://127.0.0.1:5173',*configured_origins],allow_origin_regex=r'https?://(localhost|127\.0\.0\.1|192\.168\.\d{1,3}\.\d{1,3}|10\.\d{1,3}\.\d{1,3}\.\d{1,3}|172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}):5173',allow_methods=['*'],allow_headers=['*'])
 MAX_BYTES=int(os.getenv("MAX_UPLOAD_BYTES",20*1024*1024))
 MAX_DURATION_SECONDS=float(os.getenv("MAX_AUDIO_DURATION_SECONDS",120))

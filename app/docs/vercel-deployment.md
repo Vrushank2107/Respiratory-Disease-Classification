@@ -9,9 +9,9 @@ bundle is about 5 GB, above the 2 GB limit available to this project.
 1. Import the GitHub repository into Vercel.
 2. Set **Root Directory** to `app/frontend` and choose **Vite** as the preset.
 3. The included `vercel.json` builds with `npm run build` and serves `dist`.
-4. Add `VITE_API_URL` for Production and Preview in Vercel Project Settings.
-   Set it to the public backend origin, without a trailing slash or `/api`,
-   for example `https://your-api.example.com`.
+4. Production builds use the Render API origin in `app/frontend/.env.production`.
+   Override `VITE_API_URL` in Vercel Project Settings only if you deploy the API
+   elsewhere. Set the backend origin without a trailing slash or `/api`.
 5. Redeploy after changing the variable; Vite embeds it at build time.
 
 The browser sends API requests to `VITE_API_URL + /api/...`. For local
