@@ -189,7 +189,7 @@ def test_prediction_rejects_silent_audio():
     assert "silent" in response.json()["detail"]
 
 
-def test_full_recording_requires_single_cycle_confirmation():
+def test_full_recording_uses_automatic_windows_without_annotations():
     import io
     import numpy as np
     import soundfile as sf
@@ -201,8 +201,11 @@ def test_full_recording_requires_single_cycle_confirmation():
         data={"model_id": "lightweight_mel_cnn"},
         files={"file": ("recording.wav", buffer.getvalue(), "audio/wav")},
     )
-    assert response.status_code == 422
-    assert "individual respiratory cycles" in response.json()["detail"]
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["input_mode"] == "automatic_windows"
+    assert payload["segment_count"] == 2
+    assert len(payload["results"][0]["cycle_predictions"]) == 2
 
 
 def test_full_recording_uses_uploaded_cycle_annotations():

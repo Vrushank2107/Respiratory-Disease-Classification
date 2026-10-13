@@ -59,9 +59,10 @@ export default function App() {
       .then(() => get('/api/models'))
       .then((x) => {
         setModels(x.models);
-        setSelected(
-          x.models.filter((m: ModelInfo) => m.available).map((m: ModelInfo) => m.model_id),
-        );
+        const defaultModel =
+          x.models.find((m: ModelInfo) => m.model_id === 'lightweight_mel_cnn' && m.available) ||
+          x.models.find((m: ModelInfo) => m.available);
+        setSelected(defaultModel ? [defaultModel.model_id] : []);
         setApiState('connected');
         setModelsLoaded(true);
       })

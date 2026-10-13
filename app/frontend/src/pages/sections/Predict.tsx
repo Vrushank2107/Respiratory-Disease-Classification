@@ -189,7 +189,18 @@ export default function Predict({
           Results are research scores, not calibrated clinical confidence. Scores from different
           model families may not be directly comparable.
         </p>
-        {!result && (
+        {!result && loading && file && (
+          <div className="result-empty" role="status">
+            <Mic2 size={28} />
+            <b>Analyzing {file.name}</b>
+            <span>
+              Running {selected.length} selected model{selected.length === 1 ? '' : 's'} across this
+              recording. Results appear after the analysis finishes; for a faster first result, run
+              one model at a time.
+            </span>
+          </div>
+        )}
+        {!result && !loading && (
           <div className="result-empty">
             <Mic2 size={28} />
             <b>Your results will appear here</b>
