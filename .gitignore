@@ -6,3 +6,10 @@ venv/
 .DS_Store
 ICBHI/
 data/processed/audio/cycles/
+
+# Keep local datasets and generated data out of Git.
+/data/raw/
+/data/interim/**
+!/data/interim/.gitkeep
+/data/processed/**
+!/data/processed/.gitkeep
