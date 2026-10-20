@@ -1,0 +1,40 @@
+{
+  "experiment_group": "disease_imbalance_comparison",
+  "seed": 42,
+  "num_classes": 8,
+  "class_names": [
+    "Asthma",
+    "Bronchiectasis",
+    "Bronchiolitis",
+    "COPD",
+    "Healthy",
+    "LRTI",
+    "Pneumonia",
+    "URTI"
+  ],
+  "batch_size": 32,
+  "max_epochs": 40,
+  "early_stopping_patience": 7,
+  "learning_rate": 0.001,
+  "weight_decay": 0.0001,
+  "checkpoint_selection": "validation_macro_f1_supported_classes",
+  "validation_loss_role": "diagnostic_only",
+  "test_used_for_model_selection": false,
+  "device": "mps",
+  "experiments": {
+    "A": {
+      "name": "weighted_ce",
+      "sampling": "shuffle",
+      "loss": "weighted_cross_entropy",
+      "checkpoint": "models/deep_learning/imbalance_comparison/experiment_A_weighted_ce_best.pt",
+      "history": "data/processed/deep_learning/imbalance_comparison/experiment_A_weighted_ce_history.csv"
+    },
+    "B": {
+      "name": "balanced_sampler",
+      "sampling": "weighted_random_sampler",
+      "loss": "unweighted_cross_entropy",
+      "checkpoint": "models/deep_learning/imbalance_comparison/experiment_B_balanced_sampler_best.pt",
+      "history": "data/processed/deep_learning/imbalance_comparison/experiment_B_balanced_sampler_history.csv"
+    }
+  }
+}

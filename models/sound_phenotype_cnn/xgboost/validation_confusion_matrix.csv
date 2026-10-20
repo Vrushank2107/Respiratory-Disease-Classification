@@ -1,0 +1,5 @@
+,Predicted_Normal,Predicted_Crackles,Predicted_Wheezes,Predicted_Both
+Actual_Normal,395,91,77,32
+Actual_Crackles,86,70,16,11
+Actual_Wheezes,45,18,24,30
+Actual_Both,8,8,0,3

@@ -1,0 +1,2 @@
+best_epoch,best_val_loss,test_accuracy,test_balanced_accuracy,test_macro_f1,parameters,device
+22,1.0495441724226302,0.5054452274183215,0.3633959161723688,0.3472332266060413,23780,mps

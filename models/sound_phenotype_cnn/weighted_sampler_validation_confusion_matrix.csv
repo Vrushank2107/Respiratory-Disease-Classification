@@ -1,0 +1,5 @@
+,Pred_Normal,Pred_Crackles,Pred_Wheezes,Pred_Both
+True_Normal,372,149,42,32
+True_Crackles,65,97,9,12
+True_Wheezes,25,14,67,11
+True_Both,6,4,5,4

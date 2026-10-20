@@ -8,11 +8,17 @@ client = TestClient(app)
 def test_health_and_models():
     assert client.get("/api/health").json()["status"] == "ok"
     models = client.get("/api/models").json()["models"]
-    assert len(models) == 7
+    assert len(models) == 8
     assert all(m["available"] for m in models)
     assert all(m["artifact_size_bytes"] > 0 for m in models)
     assert all(m["input_contract"] for m in models)
-    assert all(len(m["class_names"]) == 8 for m in models)
+    assert all(
+        len(m["class_names"]) == (4 if m["model_id"] == "experiment_b_sound_phenotype" else 8)
+        for m in models
+    )
+    experiment_b = next(m for m in models if m["model_id"] == "experiment_b_sound_phenotype")
+    assert experiment_b["task"] == "Sound phenotype classification"
+    assert experiment_b["supports_explanations"] is False
 
 
 def test_saved_summaries_and_allowlisted_report():
@@ -157,6 +163,46 @@ def test_prediction_response_reports_duration_and_preprocessing():
     assert payload["input_mode"] == "single_cycle"
     assert payload["cycle_count"] == 1
     assert "peak-normalized" in payload["handling"]
+
+
+def test_experiment_b_predicts_sound_phenotypes_from_uploaded_wav(monkeypatch):
+    import io
+    import numpy as np
+    import soundfile as sf
+    import app.backend.main as api
+    from app.backend.services.models import predict_experiment_b
+
+    received_peak = []
+
+    def record_input(waveform):
+        received_peak.append(float(np.max(np.abs(waveform))))
+        return predict_experiment_b(waveform)
+
+    monkeypatch.setattr(api, "predict_experiment_b", record_input)
+
+    sample_rate = 22050
+    time = np.arange(sample_rate * 4, dtype=np.float32) / sample_rate
+    waveform = 0.05 * np.sin(2 * np.pi * 120 * time)
+    audio = io.BytesIO()
+    sf.write(audio, waveform, sample_rate, format="WAV", subtype="FLOAT")
+    response = client.post(
+        "/api/predict",
+        data={
+            "model_id": "experiment_b_sound_phenotype",
+            "single_cycle_confirmed": "true",
+        },
+        files={"file": ("sample.wav", audio.getvalue(), "audio/wav")},
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    prediction = payload["results"][0]
+    assert prediction["predicted_class"] in {"Normal", "Crackles", "Wheezes", "Both"}
+    assert set(prediction["scores"]) == {"Normal", "Crackles", "Wheezes", "Both"}
+    assert prediction["supports_explanations"] is False
+    assert payload["neural_input_duration_seconds"] == 3.0
+    assert "raw amplitude" in payload["handling"]
+    assert received_peak and received_peak[0] < 0.1
+    assert payload["failures"] == []
 
 
 def test_prediction_rejects_audio_over_configured_duration(monkeypatch):

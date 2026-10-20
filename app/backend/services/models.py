@@ -26,6 +26,9 @@ CLASS_NAMES = [
     "URTI",
 ]
 TARGET_SR, TARGET_SAMPLES, N_FFT, HOP, N_MELS = 4000, 20000, 512, 128, 64
+EXPERIMENT_B_MODEL_ID = "experiment_b_sound_phenotype"
+EXPERIMENT_B_CLASS_NAMES = ["Normal", "Crackles", "Wheezes", "Both"]
+EXPERIMENT_B_DIR = ROOT / "models" / "deep_learning" / "experiment_b"
 
 
 class LightweightMelCNN(nn.Module):
@@ -133,6 +136,37 @@ class CNNLSTM(nn.Module):
         return self.classifier(self.dropout(x.mean(dim=1)))
 
 
+class CompactRespiratoryCNN(nn.Module):
+    def __init__(self, num_classes=4, dropout=0.25):
+        super().__init__()
+        self.features = nn.Sequential(
+            nn.Conv1d(1, 16, kernel_size=15, stride=2, padding=7, bias=False),
+            nn.BatchNorm1d(16),
+            nn.ReLU(inplace=True),
+            nn.MaxPool1d(kernel_size=4),
+            nn.Conv1d(16, 32, kernel_size=9, stride=1, padding=4, bias=False),
+            nn.BatchNorm1d(32),
+            nn.ReLU(inplace=True),
+            nn.MaxPool1d(kernel_size=4),
+            nn.Conv1d(32, 64, kernel_size=7, stride=1, padding=3, bias=False),
+            nn.BatchNorm1d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool1d(kernel_size=4),
+            nn.Conv1d(64, 64, kernel_size=5, stride=1, padding=2, bias=False),
+            nn.BatchNorm1d(64),
+            nn.ReLU(inplace=True),
+        )
+        self.pool = nn.AdaptiveAvgPool1d(1)
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Dropout(dropout),
+            nn.Linear(64, num_classes),
+        )
+
+    def forward(self, x):
+        return self.classifier(self.pool(self.features(x)))
+
+
 MODEL_SPECS = {
     "lightweight_mel_cnn": (
         "Lightweight Mel CNN",
@@ -195,6 +229,86 @@ def _stats(path, feature=None):
         mean, std = float(stats["mean"]), float(stats["std"])
         return {"logmel": (mean, std)}
     return {str(r.feature): (float(r.mean), float(r.std)) for r in df.itertuples()}
+
+
+@lru_cache(maxsize=1)
+def load_experiment_b_model():
+    config_path = EXPERIMENT_B_DIR / "config.json"
+    classes_path = EXPERIMENT_B_DIR / "classes.json"
+    checkpoint_path = EXPERIMENT_B_DIR / "experiment_b_cnn.pt"
+    for path in (config_path, classes_path, checkpoint_path):
+        if not path.is_file():
+            raise FileNotFoundError(f"Required Experiment B artifact missing: {path.name}")
+
+    config = json.loads(config_path.read_text())
+    class_mapping = json.loads(classes_path.read_text())
+    class_names = [
+        class_mapping[str(index)] for index in range(len(class_mapping))
+    ]
+    if class_names != EXPERIMENT_B_CLASS_NAMES:
+        raise ValueError("Experiment B class mapping does not match the trained output order")
+    if (
+        config.get("sample_rate") != TARGET_SR
+        or config.get("input_samples") != 12000
+        or config.get("duration_seconds") != 3.0
+        or config.get("channels") != 1
+        or config.get("input_representation") != "raw_waveform"
+        or config.get("amplitude_normalization") != "none"
+        or config.get("long_input") != "center_crop"
+        or config.get("short_input") != "symmetric_zero_pad"
+    ):
+        raise ValueError("Experiment B preprocessing configuration is unsupported")
+
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=True)
+    if (
+        checkpoint.get("experiment") != "B"
+        or checkpoint.get("strategy") != "balanced"
+        or checkpoint.get("seed") != config.get("seed")
+        or checkpoint.get("class_names") != class_names
+        or checkpoint.get("target_sr") != config.get("sample_rate")
+        or checkpoint.get("target_samples") != config.get("input_samples")
+    ):
+        raise ValueError("Experiment B checkpoint metadata does not match its configuration")
+
+    model = CompactRespiratoryCNN(num_classes=len(class_names))
+    model.load_state_dict(checkpoint["model_state_dict"], strict=True)
+    model.eval()
+    return model, class_names
+
+
+def prepare_experiment_b_waveform(waveform: np.ndarray) -> np.ndarray:
+    """Apply Experiment B's 3-second center-crop/symmetric-pad transform."""
+    waveform = np.asarray(waveform, dtype=np.float32)
+    if waveform.ndim != 1 or waveform.size == 0 or not np.isfinite(waveform).all():
+        raise ValueError("Experiment B requires a finite, non-empty mono waveform")
+    target_samples = 12000
+    if len(waveform) > target_samples:
+        start = (len(waveform) - target_samples) // 2
+        waveform = waveform[start : start + target_samples]
+    elif len(waveform) < target_samples:
+        missing = target_samples - len(waveform)
+        waveform = np.pad(waveform, (missing // 2, missing - missing // 2))
+    return np.asarray(waveform, dtype=np.float32)
+
+
+def predict_experiment_b(waveform: np.ndarray):
+    model, class_names = load_experiment_b_model()
+    prepared = prepare_experiment_b_waveform(waveform)
+    input_tensor = torch.from_numpy(prepared[None, None])
+    start = time.perf_counter()
+    with torch.inference_mode():
+        probabilities = torch.softmax(model(input_tensor), dim=1)[0].tolist()
+    predicted_index = int(np.argmax(probabilities))
+    return {
+        "model_id": EXPERIMENT_B_MODEL_ID,
+        "model_name": "Experiment B Sound Phenotype CNN",
+        "model_family": "deep_learning",
+        "predicted_class": class_names[predicted_index],
+        "scores": dict(zip(class_names, probabilities)),
+        "score_type": "softmax score; calibration not established",
+        "inference_ms": round((time.perf_counter() - start) * 1000, 2),
+        "warnings": [],
+    }
 
 
 @lru_cache(maxsize=4)

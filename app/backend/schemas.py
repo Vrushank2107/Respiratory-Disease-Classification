@@ -19,6 +19,7 @@ class ModelPrediction(BaseModel):
     score_type: str
     inference_ms: float = Field(ge=0)
     explanation_ms: float = Field(ge=0)
+    supports_explanations: bool = True
     warnings: list[str] = Field(default_factory=list)
     cycle_predictions: list[CyclePrediction] = Field(default_factory=list)
     explanation: dict | None = None

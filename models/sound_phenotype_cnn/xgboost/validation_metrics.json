@@ -1,0 +1,10 @@
+{
+  "model": "XGBoost",
+  "task": "four_class_sound_phenotype",
+  "n_features": 39,
+  "best_iteration": 613,
+  "accuracy": 0.5382932166301969,
+  "balanced_accuracy": 0.35235053734774585,
+  "macro_f1": 0.3365996890914144,
+  "weighted_f1": 0.5588458848205375
+}

@@ -114,10 +114,11 @@ export default function Predict({
           </div>
           <p className="small-note">
             Readable WAV recordings up to 20 MB and 120 seconds can be processed; predictions are
-            limited to the model’s eight trained labels. Without annotations, the full recording is
+            limited to each model’s trained labels. Disease models output eight diagnoses;
+            Experiment B outputs four sound phenotypes. Without annotations, the full recording is
             split into consecutive five-second windows. These are not detected respiratory cycles,
-            and results on arbitrary audio are exploratory because the models were trained on
-            cycles. Add a matching ICBHI-style .txt file when you have cycle timestamps.
+            and results on arbitrary audio are exploratory. Add a matching ICBHI-style .txt file
+            when you have cycle timestamps.
           </p>
         </Card>
 
@@ -147,12 +148,14 @@ export default function Predict({
                 <span>
                   <b>{model.display_name}</b>
                   <small>
-                    {model.family === 'deep_learning' ? 'Deep learning' : 'Traditional ML'}
+                    {model.task ||
+                      (model.family === 'deep_learning' ? 'Deep learning' : 'Traditional ML')}
                     {model.artifact_version ? ` · ${model.artifact_version}` : ''}
                     {model.artifact_size_bytes
                       ? ` · ${(model.artifact_size_bytes / 1024).toFixed(0)} KB`
                       : ''}{' '}
                     · {model.available ? 'Ready' : model.reason}
+                    {model.class_names?.length ? ` · ${model.class_names.join(', ')}` : ''}
                   </small>
                 </span>
                 <span className={`status-pill ${model.available ? 'ready' : 'off'}`}>
@@ -316,7 +319,9 @@ export default function Predict({
                         <span>
                           {model.inference_ms} ms inference
                           <br />
-                          {model.explanation_ms ?? '—'} ms XAI
+                          {model.supports_explanations === false
+                            ? 'No live XAI'
+                            : `${model.explanation_ms ?? '—'} ms XAI`}
                         </span>
                       </div>
                       <div className="pred-label">
@@ -376,72 +381,77 @@ export default function Predict({
                           </div>
                         </details>
                       )}
-                      <details className="live-explanation">
-                        <summary>Explain this model’s prediction</summary>
-                        {model.explanation ? (
-                          <div className="explanation-content">
-                            <p className="small-note">
-                              {model.explanation.method}. {model.explanation.scope}. Target
-                              class(es):{' '}
-                              {(model.explanation.target_classes || []).join(', ') || '—'}.
-                            </p>
-                            {model.explanation.feature_attributions &&
-                              Object.entries(model.explanation.feature_attributions).map(
-                                ([feature, matrix]) => (
-                                  <div key={feature}>
-                                    <b>{titleCase(feature)} saliency</b>
-                                    <Heatmap matrix={matrix} />
-                                  </div>
-                                ),
-                              )}
-                            {model.explanation.features && (
-                              <div className="feature-effects">
-                                {model.explanation.features.map((item: Obj) => {
-                                  const largest = Math.max(
-                                    ...model.explanation.features.map((row: Obj) =>
-                                      Math.abs(Number(row.impact)),
-                                    ),
-                                    1e-12,
-                                  );
-                                  const magnitude = (Math.abs(Number(item.impact)) / largest) * 100;
-                                  return (
-                                    <div className="feature-effect" key={item.feature}>
-                                      <span title={item.feature}>{titleCase(item.feature)}</span>
-                                      <i>
-                                        <em
-                                          className={
-                                            Number(item.impact) >= 0 ? 'supports' : 'opposes'
-                                          }
-                                          style={{ width: `${magnitude}%` }}
-                                        />
-                                      </i>
-                                      <b>
-                                        {Number(item.impact) >= 0 ? '+' : ''}
-                                        {Number(item.impact).toFixed(4)}
-                                      </b>
+                      {model.supports_explanations !== false && (
+                        <details className="live-explanation">
+                          <summary>Explain this model’s prediction</summary>
+                          {model.explanation ? (
+                            <div className="explanation-content">
+                              <p className="small-note">
+                                {model.explanation.method}. {model.explanation.scope}. Target
+                                class(es):{' '}
+                                {(model.explanation.target_classes || []).join(', ') || '—'}.
+                              </p>
+                              {model.explanation.feature_attributions &&
+                                Object.entries(model.explanation.feature_attributions).map(
+                                  ([feature, matrix]) => (
+                                    <div key={feature}>
+                                      <b>{titleCase(feature)} saliency</b>
+                                      <Heatmap matrix={matrix} />
                                     </div>
-                                  );
-                                })}
-                                <small className="small-note">
-                                  Positive values indicate the feature moved the target score above
-                                  its baseline; negative values indicate movement below baseline.
-                                  Values are local model score changes, not probabilities unless
-                                  explicitly labeled “class probability change.”
-                                </small>
-                              </div>
-                            )}
-                            <p className="xai-caveat">
-                              This is a model-behavior explanation for the uploaded audio, not
-                              evidence of a clinical cause or proof that the prediction is correct.
+                                  ),
+                                )}
+                              {model.explanation.features && (
+                                <div className="feature-effects">
+                                  {model.explanation.features.map((item: Obj) => {
+                                    const largest = Math.max(
+                                      ...model.explanation.features.map((row: Obj) =>
+                                        Math.abs(Number(row.impact)),
+                                      ),
+                                      1e-12,
+                                    );
+                                    const magnitude =
+                                      (Math.abs(Number(item.impact)) / largest) * 100;
+                                    return (
+                                      <div className="feature-effect" key={item.feature}>
+                                        <span title={item.feature}>{titleCase(item.feature)}</span>
+                                        <i>
+                                          <em
+                                            className={
+                                              Number(item.impact) >= 0 ? 'supports' : 'opposes'
+                                            }
+                                            style={{ width: `${magnitude}%` }}
+                                          />
+                                        </i>
+                                        <b>
+                                          {Number(item.impact) >= 0 ? '+' : ''}
+                                          {Number(item.impact).toFixed(4)}
+                                        </b>
+                                      </div>
+                                    );
+                                  })}
+                                  <small className="small-note">
+                                    Positive values indicate the feature moved the target score
+                                    above its baseline; negative values indicate movement below
+                                    baseline. Values are local model score changes, not
+                                    probabilities unless explicitly labeled “class probability
+                                    change.”
+                                  </small>
+                                </div>
+                              )}
+                              <p className="xai-caveat">
+                                This is a model-behavior explanation for the uploaded audio, not
+                                evidence of a clinical cause or proof that the prediction is
+                                correct.
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="small-note">
+                              A live explanation could not be generated for this model. The
+                              prediction is still available; check the API logs for details.
                             </p>
-                          </div>
-                        ) : (
-                          <p className="small-note">
-                            A live explanation could not be generated for this model. The prediction
-                            is still available; check the API logs for details.
-                          </p>
-                        )}
-                      </details>
+                          )}
+                        </details>
+                      )}
                     </section>
                   );
                 })}

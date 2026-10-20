@@ -1,0 +1,28 @@
+{
+  "experiment_group": "disease_imbalance_comparison",
+  "classes": [
+    "Asthma",
+    "Bronchiectasis",
+    "Bronchiolitis",
+    "COPD",
+    "Healthy",
+    "LRTI",
+    "Pneumonia",
+    "URTI"
+  ],
+  "split_policy": "existing_patient_disjoint_cnn_manifests",
+  "experiment_A": {
+    "name": "weighted_cross_entropy",
+    "sampling": "shuffle",
+    "loss": "class_weighted_cross_entropy"
+  },
+  "experiment_B": {
+    "name": "balanced_sampling",
+    "sampling": "WeightedRandomSampler",
+    "loss": "unweighted_cross_entropy"
+  },
+  "checkpoint_selection": "validation_macro_f1",
+  "additional_validation_metric": "validation_loss",
+  "test_policy": "do_not_use_for_model_selection",
+  "preserve_existing_artifacts": true
+}

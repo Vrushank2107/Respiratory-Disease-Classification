@@ -6,6 +6,9 @@ export interface ModelInfo {
   artifact_version?: string | null;
   artifact_size_bytes?: number | null;
   input_contract?: string;
+  class_names?: string[];
+  task?: string;
+  supports_explanations?: boolean;
   reason?: string | null;
 }
 

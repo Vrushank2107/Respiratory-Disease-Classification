@@ -61,8 +61,8 @@ def read_native_mono(path: str | Path):
     return audio.mean(axis=1).astype(np.float32), sample_rate, channels
 
 
-def resample_peak_normalize(waveform: np.ndarray, sample_rate: int) -> np.ndarray:
-    """Resample and peak-normalize one cycle as in Notebook 04."""
+def resample_waveform(waveform: np.ndarray, sample_rate: int) -> np.ndarray:
+    """Resample mono audio to the model rate without changing its amplitude."""
     waveform = np.asarray(waveform, dtype=np.float32)
     if waveform.size == 0 or not np.isfinite(waveform).all():
         raise ValueError("Audio cycle is empty or contains invalid samples")
@@ -74,6 +74,14 @@ def resample_peak_normalize(waveform: np.ndarray, sample_rate: int) -> np.ndarra
             res_type="soxr_hq",
         )
     waveform = np.asarray(waveform, dtype=np.float32)
+    if waveform.size == 0 or not np.isfinite(waveform).all():
+        raise ValueError("Audio could not be resampled safely")
+    return waveform
+
+
+def resample_peak_normalize(waveform: np.ndarray, sample_rate: int) -> np.ndarray:
+    """Resample and peak-normalize one cycle as in Notebook 04."""
+    waveform = resample_waveform(waveform, sample_rate)
     peak = float(np.max(np.abs(waveform))) if waveform.size else 0.0
     if peak <= 0:
         raise ValueError("Audio cycle is silent; provide a non-zero signal")
@@ -84,24 +92,22 @@ def resample_peak_normalize(waveform: np.ndarray, sample_rate: int) -> np.ndarra
 
 
 def split_recording_into_windows(
-    waveform: np.ndarray, sample_rate: int, window_samples: int = TARGET_SAMPLES
+    waveform: np.ndarray,
+    sample_rate: int,
+    window_samples: int = TARGET_SAMPLES,
+    *,
+    normalize: bool = True,
 ) -> list[tuple[int, np.ndarray]]:
-    """Cover an unannotated WAV with consecutive, independently normalized windows.
+    """Cover an unannotated WAV with consecutive windows.
 
     This is a generic-recording fallback, not respiratory-cycle detection. The
-    model's fixed five-second input size defines the default window length.
+    existing models use independently peak-normalized five-second windows by
+    default; callers can preserve amplitude for models trained on raw waveforms.
     """
     waveform = np.asarray(waveform, dtype=np.float32)
     if waveform.size == 0 or not np.isfinite(waveform).all():
         raise ValueError("Audio recording is empty or contains invalid samples")
-    if sample_rate != TARGET_SR:
-        waveform = librosa.resample(
-            waveform,
-            orig_sr=sample_rate,
-            target_sr=TARGET_SR,
-            res_type="soxr_hq",
-        )
-    waveform = np.asarray(waveform, dtype=np.float32)
+    waveform = resample_waveform(waveform, sample_rate)
     if not np.isfinite(waveform).all() or not np.any(waveform):
         raise ValueError("Audio is silent or could not be resampled safely")
     windows = []
@@ -109,8 +115,10 @@ def split_recording_into_windows(
         segment = waveform[offset : offset + window_samples]
         if not segment.size or not np.any(segment):
             continue
-        peak = float(np.max(np.abs(segment)))
-        windows.append((len(windows) + 1, (segment / peak).astype(np.float32)))
+        if normalize:
+            peak = float(np.max(np.abs(segment)))
+            segment = segment / peak
+        windows.append((len(windows) + 1, segment.astype(np.float32)))
     if not windows:
         raise ValueError("No non-silent audio windows were found")
     if len(windows) > 64:
@@ -152,11 +160,19 @@ def parse_cycle_annotations(
 
 
 def extract_annotated_cycle(
-    waveform: np.ndarray, sample_rate: int, start_time: float, end_time: float
+    waveform: np.ndarray,
+    sample_rate: int,
+    start_time: float,
+    end_time: float,
+    *,
+    normalize: bool = True,
 ) -> np.ndarray:
-    """Extract and apply Notebook 04 resampling/normalization to one annotated cycle."""
+    """Extract a cycle and optionally apply Notebook 04 peak normalization."""
     start = int(round(start_time * sample_rate))
     end = int(round(end_time * sample_rate))
     if start < 0 or end <= start or start >= len(waveform):
         raise ValueError("Cycle annotation has invalid audio boundaries")
-    return resample_peak_normalize(waveform[start : min(end, len(waveform))], sample_rate)
+    cycle = waveform[start : min(end, len(waveform))]
+    if normalize:
+        return resample_peak_normalize(cycle, sample_rate)
+    return resample_waveform(cycle, sample_rate)

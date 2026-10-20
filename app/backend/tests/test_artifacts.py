@@ -5,8 +5,12 @@ from app.backend.services.models import (
     ROOT,
     MODEL_SPECS,
     load_dl_model,
+    load_experiment_b_model,
+    predict_experiment_b,
+    prepare_experiment_b_waveform,
     predict_dl,
     CLASS_NAMES,
+    EXPERIMENT_B_CLASS_NAMES,
 )
 from app.backend.services.audio_processing import (
     decode_audio,
@@ -21,6 +25,32 @@ from app.backend.services.classical import artifacts, predict_classical
 def test_neural_artifacts_load_strictly(model_id):
     model, stats = load_dl_model(model_id)
     assert model is not None and stats
+
+
+def test_experiment_b_artifact_loads_strictly_and_predicts_phenotypes():
+    model, class_names = load_experiment_b_model()
+    assert model.training is False
+    assert class_names == EXPERIMENT_B_CLASS_NAMES
+
+    waveform = np.sin(np.linspace(0, 16 * np.pi, 16000, dtype=np.float32)) * 0.05
+    prepared = prepare_experiment_b_waveform(waveform)
+    assert prepared.shape == (12000,)
+    result = predict_experiment_b(waveform)
+    assert result["predicted_class"] in class_names
+    assert set(result["scores"]) == set(class_names)
+    assert np.isclose(sum(result["scores"].values()), 1.0)
+
+
+def test_experiment_b_input_transform_matches_training_crop_and_padding():
+    long_waveform = np.arange(16000, dtype=np.float32)
+    np.testing.assert_array_equal(
+        prepare_experiment_b_waveform(long_waveform), long_waveform[2000:14000]
+    )
+
+    short_waveform = np.asarray([1.0, 2.0, 3.0], dtype=np.float32)
+    padded = prepare_experiment_b_waveform(short_waveform)
+    assert padded.shape == (12000,)
+    assert padded[5998:6001].tolist() == [1.0, 2.0, 3.0]
 
 
 def test_lightweight_regression_reference():

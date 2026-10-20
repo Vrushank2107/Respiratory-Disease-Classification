@@ -17,6 +17,12 @@ from .services.models import (
     explain_dl,
     extract_features,
     CLASS_NAMES,
+    EXPERIMENT_B_DIR,
+    EXPERIMENT_B_MODEL_ID,
+    EXPERIMENT_B_CLASS_NAMES,
+    load_experiment_b_model,
+    predict_experiment_b,
+    prepare_experiment_b_waveform,
 )
 from .services.audio_processing import (
     decode_audio,
@@ -25,6 +31,7 @@ from .services.audio_processing import (
     parse_cycle_annotations,
     read_native_mono,
     resample_peak_normalize,
+    resample_waveform,
     split_recording_into_windows,
 )
 from .services.classical import (
@@ -74,6 +81,7 @@ MODEL_META = {
         "deep_learning",
     ),
     "cnn_lstm": ("CNN-LSTM", "deep_learning"),
+    EXPERIMENT_B_MODEL_ID: ("Experiment B Sound Phenotype CNN", "deep_learning"),
 }
 
 
@@ -104,7 +112,16 @@ def public_model(mid):
     artifact_version = ""
     artifact_size_bytes = None
     try:
-        if family == "deep_learning":
+        if mid == EXPERIMENT_B_MODEL_ID:
+            load_experiment_b_model()
+            checkpoint = EXPERIMENT_B_DIR / "experiment_b_cnn.pt"
+            config = json.loads((EXPERIMENT_B_DIR / "config.json").read_text())
+            artifact_version = (
+                f"Experiment B · validation seed {config['seed']} · "
+                f"epoch {config['best_epoch']}"
+            )
+            artifact_size_bytes = checkpoint.stat().st_size
+        elif family == "deep_learning":
             load_dl_model(mid)
             checkpoint = ROOT / "models" / MODEL_SPECS[mid][1]
             artifact_version = "patient-disjoint checkpoint"
@@ -125,8 +142,23 @@ def public_model(mid):
         "artifact_validation": "loaded strictly" if checked else "failed",
         "artifact_version": artifact_version or None,
         "artifact_size_bytes": artifact_size_bytes,
-        "input_contract": "WAV input; optional ICBHI-style cycle annotations, otherwise consecutive five-second windows; 4 kHz, mono, peak-normalized",
-        "class_names": CLASS_NAMES,
+        "input_contract": (
+            "WAV input; 4 kHz mono; 3-second raw waveform; center-cropped or symmetrically "
+            "zero-padded; no amplitude normalization"
+            if mid == EXPERIMENT_B_MODEL_ID
+            else "WAV input; optional ICBHI-style cycle annotations, otherwise consecutive five-second windows; 4 kHz, mono, peak-normalized"
+        ),
+        "class_names": (
+            EXPERIMENT_B_CLASS_NAMES
+            if mid == EXPERIMENT_B_MODEL_ID
+            else CLASS_NAMES
+        ),
+        "task": (
+            "Sound phenotype classification"
+            if mid == EXPERIMENT_B_MODEL_ID
+            else "Respiratory disease classification"
+        ),
+        "supports_explanations": mid != EXPERIMENT_B_MODEL_ID,
         "reason": None
         if checked
         else (reasons[0] if reasons else "required artifact unavailable"),
@@ -137,7 +169,13 @@ def saved_model_inventory():
     """Check artifact paths without importing estimators or loading checkpoints."""
     inventory = []
     for model_id, (display_name, family) in MODEL_META.items():
-        if family == "deep_learning":
+        if model_id == EXPERIMENT_B_MODEL_ID:
+            artifact = EXPERIMENT_B_DIR / "experiment_b_cnn.pt"
+            present = all(
+                (EXPERIMENT_B_DIR / name).is_file()
+                for name in ("experiment_b_cnn.pt", "config.json", "classes.json")
+            )
+        elif family == "deep_learning":
             checkpoint = ROOT / "models" / MODEL_SPECS[model_id][1]
             normalization = ROOT / "models" / MODEL_SPECS[model_id][2]
             present = checkpoint.is_file() and normalization.is_file()
@@ -501,15 +539,40 @@ async def run_prediction(file, model_ids, single_cycle_confirmed=False, annotati
                 (index, extract_annotated_cycle(native_audio, source_sr, start, end))
                 for index, (start, end) in enumerate(intervals, start=1)
             ]
+            phenotype_cycle_inputs = (
+                [
+                    (
+                        index,
+                        extract_annotated_cycle(
+                            native_audio, source_sr, start, end, normalize=False
+                        ),
+                    )
+                    for index, (start, end) in enumerate(intervals, start=1)
+                ]
+                if EXPERIMENT_B_MODEL_ID in model_ids
+                else []
+            )
             input_mode = "annotated_recording"
             input_note = f"Extracted {len(cycle_inputs)} cycles using the uploaded annotation timestamps."
         elif single_cycle_confirmed:
             # Keep compatibility for API clients that still send the previous flag.
             cycle_inputs = [(1, resample_peak_normalize(native_audio, source_sr))]
+            phenotype_cycle_inputs = (
+                [(1, resample_waveform(native_audio, source_sr))]
+                if EXPERIMENT_B_MODEL_ID in model_ids
+                else []
+            )
             input_mode = "single_cycle"
             input_note = "Treated the upload as one isolated respiratory cycle (legacy API option)."
         else:
             cycle_inputs = split_recording_into_windows(native_audio, source_sr)
+            phenotype_cycle_inputs = (
+                split_recording_into_windows(
+                    native_audio, source_sr, normalize=False
+                )
+                if EXPERIMENT_B_MODEL_ID in model_ids
+                else []
+            )
             input_mode = "automatic_windows"
             input_note = (
                 f"Split the complete WAV into {len(cycle_inputs)} consecutive five-second "
@@ -518,17 +581,29 @@ async def run_prediction(file, model_ids, single_cycle_confirmed=False, annotati
             )
         cycle_count = len(cycle_inputs)
 
-        analysis_input = fixed_length_waveform(cycle_inputs[0][1])
+        selected_neural_ids = [
+            model_id
+            for model_id in model_ids
+            if MODEL_META[model_id][1] == "deep_learning"
+        ]
+        neural_input_duration = (
+            3.0
+            if selected_neural_ids == [EXPERIMENT_B_MODEL_ID]
+            else 5.0
+        )
+        analysis_input = (
+            prepare_experiment_b_waveform(phenotype_cycle_inputs[0][1])
+            if selected_neural_ids == [EXPERIMENT_B_MODEL_ID]
+            else fixed_length_waveform(cycle_inputs[0][1])
+        )
         analysis_features = await run_in_threadpool(extract_features, analysis_input)
         native_stride = max(1, len(native_audio) // 600)
         model_stride = max(1, len(analysis_input) // 600)
         analysis = {
             "cycle_count": cycle_count,
-            "neural_input_selected": any(
-                MODEL_META[model_id][1] == "deep_learning" for model_id in model_ids
-            ),
+            "neural_input_selected": bool(selected_neural_ids),
             "preview_cycle_number": cycle_inputs[0][0],
-            "neural_input_duration_seconds": 5.0,
+            "neural_input_duration_seconds": neural_input_duration,
             "waveform_sample_rate": 4000,
             "source_waveform_sample_rate": source_sr,
             "source_waveform_time_step_seconds": native_stride / source_sr,
@@ -551,14 +626,14 @@ async def run_prediction(file, model_ids, single_cycle_confirmed=False, annotati
                 {
                     "name": "Segment preprocessing",
                     "status": "passed",
-                    "detail": "Audio is downmixed to mono and resampled to 4 kHz. Each annotated cycle or automatic window is peak-normalized.",
+                    "detail": "Audio is downmixed to mono and resampled to 4 kHz. Existing disease models receive peak-normalized segments; Experiment B receives unnormalized waveform amplitude.",
                 },
                 {
                     "name": "Neural model input",
                     "status": "passed"
-                    if any(MODEL_META[model_id][1] == "deep_learning" for model_id in model_ids)
+                    if selected_neural_ids
                     else "not_selected",
-                    "detail": "Selected neural models receive 20,000 samples (5 seconds), padded or truncated as needed.",
+                    "detail": "Disease CNNs receive 20,000 samples (5 seconds). Experiment B receives 12,000 samples (3 seconds), center-cropped or symmetrically zero-padded.",
                 },
                 {
                     "name": "Audio feature transforms",
@@ -570,14 +645,36 @@ async def run_prediction(file, model_ids, single_cycle_confirmed=False, annotati
 
         segment_unit = "window" if input_mode == "automatic_windows" else "cycle"
         warnings = [
-            "Models were trained on individual respiratory cycles.",
-            f"Per-class values are mean {segment_unit} scores and are not calibrated clinical confidence.",
-            "Rare diagnoses have little or no held-out patient support in the saved evaluation.",
+            f"Per-class values are mean {segment_unit} scores and are not calibrated clinical confidence."
         ]
+        if any(model_id != EXPERIMENT_B_MODEL_ID for model_id in model_ids):
+            warnings.extend(
+                [
+                    "Disease classification models were trained on individual respiratory cycles.",
+                    "Rare diagnoses have little or no held-out patient support in the saved evaluation.",
+                ]
+            )
+        if EXPERIMENT_B_MODEL_ID in model_ids:
+            warnings.append(
+                "Experiment B predicts sound phenotypes (Normal, Crackles, Wheezes, Both), not disease diagnoses."
+            )
         if input_mode == "automatic_windows":
+            window_warning = (
+                "Unannotated recordings are scored in consecutive five-second windows, not detected respiratory cycles."
+            )
+            if EXPERIMENT_B_MODEL_ID in model_ids:
+                window_warning += (
+                    " Experiment B center-crops each window to three seconds; these "
+                    "predictions are exploratory on arbitrary recordings."
+                )
+            else:
+                window_warning += (
+                    " These windows may not match the disease models' cycle-based "
+                    "evaluation domain."
+                )
             warnings.insert(
                 1,
-                "Unannotated recordings are scored in consecutive five-second windows, not detected respiratory cycles. A window may contain partial or multiple breaths, so these results are exploratory and may not match the model's cycle-based evaluation domain.",
+                window_warning,
             )
         results = []
         failures = []
@@ -595,7 +692,13 @@ async def run_prediction(file, model_ids, single_cycle_confirmed=False, annotati
                 inference_ms = 0.0
                 explanation_ms = 0.0
                 for index, (cycle_number, cycle_audio) in enumerate(cycle_inputs):
-                    if MODEL_META[mid][1] == "deep_learning":
+                    if mid == EXPERIMENT_B_MODEL_ID:
+                        model_input = phenotype_cycle_inputs[index][1]
+                        cycle_result = await run_in_threadpool(
+                            predict_experiment_b, model_input
+                        )
+                        inference_ms += cycle_result["inference_ms"]
+                    elif MODEL_META[mid][1] == "deep_learning":
                         model_input = fixed_length_waveform(cycle_audio)
                         cycle_result = await run_in_threadpool(
                             predict_dl, mid, model_input
@@ -615,7 +718,7 @@ async def run_prediction(file, model_ids, single_cycle_confirmed=False, annotati
                     # Explain one representative segment per model. Score every
                     # segment, but avoid multiplying gradient/ablation cost by
                     # the duration of a long upload.
-                    if index == 0:
+                    if index == 0 and mid != EXPERIMENT_B_MODEL_ID:
                         explanation_started = time.perf_counter()
                         try:
                             if MODEL_META[mid][1] == "deep_learning":
@@ -732,6 +835,7 @@ async def run_prediction(file, model_ids, single_cycle_confirmed=False, annotati
                         "model_id": mid,
                         "model_name": MODEL_META[mid][0],
                         "model_family": MODEL_META[mid][1],
+                        "supports_explanations": mid != EXPERIMENT_B_MODEL_ID,
                         "predicted_class": predicted_class,
                         "scores": mean_scores,
                         "score_type": (
@@ -769,11 +873,13 @@ async def run_prediction(file, model_ids, single_cycle_confirmed=False, annotati
             "input_mode": input_mode,
             "cycle_count": cycle_count,
             "segment_count": cycle_count,
-            "neural_input_duration_seconds": 5.0,
+            "neural_input_duration_seconds": neural_input_duration,
             "handling": (
-                f"{input_note} Each segment is mono, resampled to 4 kHz, and peak-normalized. "
-                "Neural models pad or truncate each segment to five seconds; traditional models "
-                f"process the complete segment. Scores are averaged across {segment_unit}s."
+                f"{input_note} Each segment is mono and resampled to 4 kHz. Existing models "
+                "receive peak-normalized audio; Experiment B receives raw amplitude and "
+                "center-crops or symmetrically pads it to three seconds. Disease CNNs use "
+                "five-second input. Traditional models process the complete segment. Scores "
+                f"are averaged across {segment_unit}s."
             ),
             "audio_analysis": analysis,
             "warnings": warnings,
