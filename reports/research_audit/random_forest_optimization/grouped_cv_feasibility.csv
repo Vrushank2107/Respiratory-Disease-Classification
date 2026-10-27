@@ -1,0 +1,6 @@
+fold,train_cycles,validation_cycles,train_patients,validation_patients,patient_overlap,train_classes,validation_classes,classes_missing_from_validation,classes_missing_from_training
+1,5524,1374,102,24,0,8,7,Asthma,
+2,5483,1415,99,27,0,8,6,"Asthma, LRTI",
+3,5518,1380,100,26,0,8,7,Asthma,
+4,5530,1368,100,26,0,7,7,LRTI,Asthma
+5,5537,1361,103,23,0,8,6,"Asthma, LRTI",

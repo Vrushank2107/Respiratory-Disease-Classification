@@ -1,0 +1,17 @@
+{
+  "selected_config_id": 2,
+  "n_test_cycles": 1561,
+  "test_classes_supported": [
+    "Bronchiectasis",
+    "Bronchiolitis",
+    "COPD",
+    "Healthy",
+    "Pneumonia",
+    "URTI"
+  ],
+  "accuracy": 0.8494554772581678,
+  "balanced_accuracy_supported": 0.350809773075844,
+  "macro_f1_supported": 0.35483848143827634,
+  "macro_f1_all8": 0.26612886107870726,
+  "weighted_f1": 0.8479106171644503
+}

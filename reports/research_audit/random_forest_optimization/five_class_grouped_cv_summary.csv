@@ -1,0 +1,6 @@
+fold,train_cycles,validation_cycles,train_patients,validation_patients,patient_overlap,validation_COPD_cycles,validation_Healthy_cycles,validation_URTI_cycles,validation_Bronchiectasis_cycles,validation_Pneumonia_cycles
+1,5371,1329,95,22,0,1152,62,49,14,52
+2,5317,1383,92,25,0,1149,61,46,15,112
+3,5357,1343,93,24,0,1149,65,62,17,50
+4,5370,1330,93,24,0,1148,67,43,41,31
+5,5385,1315,95,22,0,1148,67,43,17,40

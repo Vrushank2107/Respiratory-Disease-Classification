@@ -1,0 +1,14 @@
+model,rows,truth_sequence_matches_manifest,alignment_evidence
+logistic_regression,1561,True,truth sequence matches; cycle-level identity not fully verifiable
+svm,1561,True,truth sequence matches; cycle-level identity not fully verifiable
+random_forest,1561,True,truth sequence matches; cycle-level identity not fully verifiable
+lightweight_mel_cnn,1561,True,truth sequence matches; cycle-level identity not fully verifiable
+multifeature_cnn,1561,True,truth sequence matches; cycle-level identity not fully verifiable
+regularized_multifeature_cnn,1561,True,truth sequence matches; cycle-level identity not fully verifiable
+cnn_lstm,1561,True,truth sequence matches; cycle-level identity not fully verifiable
+Lightweight Multi-feature CNN,1561,True,exact audio-path MATCH
+Experiment A — Weighted CE,1561,True,exact audio-path MATCH
+Experiment B — Balanced Sampler,1561,True,exact audio-path MATCH
+Multi-feature CNN,1561,True,no audio path in prediction file; identity not independently verified
+Regularized Multi-feature CNN,1561,True,no audio path in prediction file; identity not independently verified
+XGBoost,1561,True,no audio path in prediction file; identity not independently verified

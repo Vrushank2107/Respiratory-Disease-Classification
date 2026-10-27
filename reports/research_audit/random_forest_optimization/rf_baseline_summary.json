@@ -1,0 +1,27 @@
+{
+    "experiment": "five_class_patient_grouped_rf_baseline",
+    "classes": [
+        "COPD",
+        "Healthy",
+        "URTI",
+        "Bronchiectasis",
+        "Pneumonia"
+    ],
+    "n_cycles": 6700,
+    "n_patients": 117,
+    "n_features": 39,
+    "model_parameters": {
+        "n_estimators": 300,
+        "random_state": 42,
+        "n_jobs": -1,
+        "class_weight": "balanced"
+    },
+    "oof_accuracy": 0.8544776119402985,
+    "oof_balanced_accuracy": 0.35255169130936076,
+    "oof_macro_f1": 0.3462780038216211,
+    "oof_weighted_f1": 0.8410288749049435,
+    "fold_macro_f1_mean": 0.3395334697727353,
+    "fold_macro_f1_std": 0.04009248762749718,
+    "fold_balanced_accuracy_mean": 0.3509844110641307,
+    "fold_balanced_accuracy_std": 0.041287300847577556
+}
