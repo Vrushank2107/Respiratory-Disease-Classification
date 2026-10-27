@@ -1,0 +1,9 @@
+disease,cycles,patients,recordings,cycle_percentage
+COPD,5746,64,179,83.3
+Healthy,322,26,28,4.67
+Pneumonia,285,6,14,4.13
+URTI,243,14,14,3.52
+Bronchiolitis,160,6,6,2.32
+Bronchiectasis,104,7,12,1.51
+LRTI,32,2,2,0.46
+Asthma,6,1,1,0.09

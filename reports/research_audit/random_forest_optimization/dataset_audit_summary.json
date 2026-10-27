@@ -1,0 +1,65 @@
+{
+  "feature_dataset_rows": 6898,
+  "unique_patients": 126,
+  "unique_diseases": 8,
+  "numeric_features": 39,
+  "patients_with_multiple_diagnoses": 0,
+  "disease_support": [
+    {
+      "disease": "COPD",
+      "cycles": 5746,
+      "patients": 64,
+      "recordings": 179,
+      "cycle_percentage": 83.3
+    },
+    {
+      "disease": "Healthy",
+      "cycles": 322,
+      "patients": 26,
+      "recordings": 28,
+      "cycle_percentage": 4.67
+    },
+    {
+      "disease": "Pneumonia",
+      "cycles": 285,
+      "patients": 6,
+      "recordings": 14,
+      "cycle_percentage": 4.13
+    },
+    {
+      "disease": "URTI",
+      "cycles": 243,
+      "patients": 14,
+      "recordings": 14,
+      "cycle_percentage": 3.52
+    },
+    {
+      "disease": "Bronchiolitis",
+      "cycles": 160,
+      "patients": 6,
+      "recordings": 6,
+      "cycle_percentage": 2.32
+    },
+    {
+      "disease": "Bronchiectasis",
+      "cycles": 104,
+      "patients": 7,
+      "recordings": 12,
+      "cycle_percentage": 1.51
+    },
+    {
+      "disease": "LRTI",
+      "cycles": 32,
+      "patients": 2,
+      "recordings": 2,
+      "cycle_percentage": 0.46
+    },
+    {
+      "disease": "Asthma",
+      "cycles": 6,
+      "patients": 1,
+      "recordings": 1,
+      "cycle_percentage": 0.09
+    }
+  ]
+}
